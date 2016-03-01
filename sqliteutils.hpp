@@ -117,7 +117,7 @@ inline auto bind(sqlite3_stmt* const stmt, int const i,
 inline auto bind(sqlite3_stmt* const stmt, int const i,
   char16_t const* v) noexcept
 {
-  return sqlite3_bind_text16(stmt, i, v.first, -1, SQLITE_TRANSIENT);
+  return sqlite3_bind_text16(stmt, i, v, -1, SQLITE_TRANSIENT);
 }
 
 inline auto bind(sqlite3_stmt* const stmt, int const i,
@@ -261,37 +261,42 @@ inline stmt_t make_stmt(sqlite3* const db, ::std::string const& a) noexcept
 
 //////////////////////////////////////////////////////////////////////////////
 template <typename ...A>
-inline auto exec(char const* const a, int const i, A&& ...args) noexcept
+inline auto exec(sqlite3* const db, char const* const a, int const i,
+  A&& ...args) noexcept
 {
-  return exec(make_stmt(a), i, ::std::forward<A>(args)...);
+  return exec(make_stmt(db, a), i, ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 template <::std::size_t N, typename ...A>
-inline auto exec(char const (&a)[N], int const i, A&& ...args) noexcept
+inline auto exec(sqlite3* const db, char const (&a)[N], int const i,
+  A&& ...args) noexcept
 {
-  return exec(&*a, i, ::std::forward<A>(args)...);
+  return exec(db, &*a, i, ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 template <::std::size_t N, typename ...A>
-inline auto exec(::std::string const& a, int const i, A&& ...args) noexcept
+inline auto exec(sqlite3* const db, ::std::string const& a, int const i,
+  A&& ...args) noexcept
 {
-  return exec(a.c_str(), i, ::std::forward<A>(args)...);
+  return exec(db, a.c_str(), i, ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 template <::std::size_t N, typename ...A>
-inline auto exec_front(char const (&a)[N], A&& ...args) noexcept
+inline auto exec_front(sqlite3* const db, char const (&a)[N],
+  A&& ...args) noexcept
 {
-  return exec(&*a, 1, ::std::forward<A>(args)...);
+  return exec(db, &*a, 1, ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 template <::std::size_t N, typename ...A>
-inline auto exec_front(::std::string const& a, A&& ...args) noexcept
+inline auto exec_front(sqlite3* const db, ::std::string const& a,
+  A&& ...args) noexcept
 {
-  return exec(a.c_str(), 1, ::std::forward<A>(args)...);
+  return exec(db, a.c_str(), 1, ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
