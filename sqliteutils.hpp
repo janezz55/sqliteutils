@@ -251,7 +251,7 @@ template <typename T,
 inline stmt_t make_stmt(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
 {
-  sqlite3_stmt* stmt{};
+  sqlite3_stmt* stmt;
 
   auto const result(sqlite3_prepare_v2(db, a, size, &stmt, nullptr));
   assert(SQLITE_OK == result);
