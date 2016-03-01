@@ -321,7 +321,7 @@ class out
   sqlite3_stmt* const stmt_;
 
 public:
-  explicit out(stmt_t const& stmt, int const i = 0) noexcept :
+  explicit out(stmt_t const& stmt, int const i = 1) noexcept :
     i_(i),
     stmt_(stmt.get())
   {
