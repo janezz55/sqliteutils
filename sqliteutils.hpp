@@ -317,19 +317,19 @@ inline auto exec_front(sqlite3* const db, ::std::string const& a,
 //////////////////////////////////////////////////////////////////////////////
 class out
 {
+  stmt_t const& stmt_;
   int i_;
-  sqlite3_stmt* const stmt_;
 
 public:
-  explicit out(stmt_t const& stmt, int const i = 1) noexcept :
-    i_(i),
-    stmt_(stmt.get())
+  explicit out(stmt_t const& stmt, decltype(i_) const i = 1) noexcept :
+    stmt_(stmt),
+    i_(i)
   {
   }
 
-  auto index() noexcept -> decltype((i_)) { return i_; }
+  auto stmt() const noexcept { return stmt_.get(); }
 
-  auto stmt() const noexcept -> decltype(stmt_) { return stmt_; }
+  auto index() noexcept -> decltype((i_)) { return i_; }
 };
 
 template <typename T>
