@@ -2,6 +2,8 @@
 # define SQLITEUTILS_HPP
 # pragma once
 
+#include "sqlite3/sqlite3.h"
+
 #include <cassert>
 
 #include <memory>
@@ -11,8 +13,6 @@
 #include <type_traits>
 
 #include <utility>
-
-#include "sqlite3/sqlite3.h"
 
 namespace sqlite
 {
