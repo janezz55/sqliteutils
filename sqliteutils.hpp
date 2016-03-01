@@ -23,7 +23,7 @@ using charpair_t = ::std::pair<char const* const, int const>;
 
 using char16pair_t = ::std::pair<char16_t const* const, int const>;
 
-using nullpair_t = ::std::pair<::std::nullptr_t const, int const>;
+using nullpair_t = ::std::pair<::std::nullptr_t const, sqlite3_uint64 const>;
 
 namespace detail
 {
@@ -129,7 +129,7 @@ inline auto bind(sqlite3_stmt* const stmt, int const i,
 inline auto bind(sqlite3_stmt* const stmt, int const i,
   nullpair_t const& v) noexcept
 {
-  return sqlite3_bind_zeroblob(stmt, i, v.second);
+  return sqlite3_bind_zeroblob64(stmt, i, v.second);
 }
 
 struct deleter
