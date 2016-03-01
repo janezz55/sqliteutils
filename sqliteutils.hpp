@@ -17,9 +17,9 @@
 namespace sqlite
 {
 
-using blobpair_t = ::std::pair<void const* const, int const>;
+using blobpair_t = ::std::pair<void const* const, sqlite3_uint64 const>;
 
-using charpair_t = ::std::pair<char const* const, int const>;
+using charpair_t = ::std::pair<char const* const, sqlite3_uint64 const>;
 
 using char16pair_t = ::std::pair<char16_t const* const, int const>;
 
@@ -31,7 +31,7 @@ namespace detail
 inline auto bind(sqlite3_stmt* const stmt, int const i,
   blobpair_t const& v) noexcept
 {
-  return sqlite3_bind_blob(stmt, i, v.first, v.second, SQLITE_TRANSIENT);
+  return sqlite3_bind_blob64(stmt, i, v.first, v.second, SQLITE_TRANSIENT);
 }
 
 inline auto bind(sqlite3_stmt* const stmt, int const i,
@@ -86,17 +86,23 @@ template <::std::size_t N>
 inline auto bind(sqlite3_stmt* const stmt, int const i,
   char const (&v)[N]) noexcept
 {
-  return sqlite3_bind_text(stmt, i, v, N, SQLITE_STATIC);
+  return sqlite3_bind_text64(stmt, i, v, N, SQLITE_STATIC, SQLITE_UTF8);
 }
 
 inline auto bind(sqlite3_stmt* const stmt, int const i,
   charpair_t const& v) noexcept
 {
-  return sqlite3_bind_text(stmt, i, v.first, v.second, SQLITE_TRANSIENT);
+  return sqlite3_bind_text64(stmt, i, v.first, v.second, SQLITE_STATIC,
+    SQLITE_UTF8);
 }
 
+template <typename T,
+  typename = typename std::enable_if<
+    std::is_same<T, char>{}
+  >::type
+>
 inline auto bind(sqlite3_stmt* const stmt, int const i,
-  char const* const v) noexcept
+  T const* const& v) noexcept
 {
   return sqlite3_bind_text(stmt, i, v, -1, SQLITE_TRANSIENT);
 }
@@ -104,7 +110,8 @@ inline auto bind(sqlite3_stmt* const stmt, int const i,
 inline auto bind(sqlite3_stmt* const stmt, int const i,
   ::std::string const& v) noexcept
 {
-  return sqlite3_bind_text(stmt, i, v.c_str(), v.size(), SQLITE_TRANSIENT);
+  return sqlite3_bind_text64(stmt, i, v.c_str(), v.size(), SQLITE_TRANSIENT,
+    SQLITE_UTF8);
 }
 
 template <::std::size_t N>
