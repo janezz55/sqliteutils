@@ -236,7 +236,12 @@ inline auto exec_front(stmt_t const& stmt, A&& ...args) noexcept
 }
 
 //////////////////////////////////////////////////////////////////////////////
-inline stmt_t make_stmt(sqlite3* const db, char const* const a,
+template <typename T,
+  typename = typename std::enable_if<
+    std::is_same<T, char>{}
+  >::type
+>
+inline stmt_t make_stmt(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
 {
   sqlite3_stmt* stmt{};
@@ -265,9 +270,7 @@ template <typename ...A>
 inline auto exec(sqlite3* const db, char const* const a, int const i,
   A&& ...args) noexcept
 {
-  return exec(
-    make_stmt(db, a), i, ::std::forward<A>(args)...
-  );
+  return exec(make_stmt(db, a), i, ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -275,9 +278,7 @@ template <::std::size_t N, typename ...A>
 inline auto exec(sqlite3* const db, char const (&a)[N], int const i,
   A&& ...args) noexcept
 {
-  return exec(
-    make_stmt(db, &*a, N), i, ::std::forward<A>(args)...
-  );
+  return exec(make_stmt<N>(db, a), i, ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
