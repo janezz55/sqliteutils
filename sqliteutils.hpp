@@ -218,13 +218,6 @@ inline auto exec(sqlite3_stmt* const stmt, int const i, A&& ...args) noexcept
 
 //////////////////////////////////////////////////////////////////////////////
 template <typename ...A>
-inline auto exec(stmt_t const& stmt, A&& ...args) noexcept
-{
-  return exec(stmt.get(), ::std::forward<A>(args)...);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
 inline auto exec_front(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
   sqlite3_reset(stmt);
@@ -233,13 +226,6 @@ inline auto exec_front(sqlite3_stmt* const stmt, A&& ...args) noexcept
   assert(SQLITE_OK == result);
 
   return sqlite3_step(stmt);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto exec_front(stmt_t const& stmt, A&& ...args) noexcept
-{
-  return exec_front(stmt.get(), ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -315,83 +301,107 @@ inline auto exec_front(sqlite3* const db, ::std::string const& a,
 }
 
 //////////////////////////////////////////////////////////////////////////////
-class out
-{
-  stmt_t const& stmt_;
-  int i_;
-
-public:
-  explicit out(stmt_t const& stmt, decltype(i_) const i = 1) noexcept :
-    stmt_(stmt),
-    i_(i)
-  {
-  }
-
-  auto stmt() const noexcept { return stmt_.get(); }
-
-  auto index() noexcept -> decltype((i_)) { return i_; }
-};
-
-template <typename T>
+template <typename T, int I = 0>
 inline typename ::std::enable_if<
   ::std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
-  out&
+  T
 >::type
-operator>>(out& o, T& v) noexcept
+get(sqlite3_stmt* const stmt) noexcept
 {
-  v = sqlite3_column_int(o.stmt(), o.index()++);
-
-  return o;
+  return sqlite3_column_int(stmt, I);
 }
 
-template <typename T>
+template <typename T, int I = 0>
 inline typename ::std::enable_if<
   ::std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
-  out&
+  T
 >::type
-operator>>(out& o, T& v) noexcept
+get(sqlite3_stmt* const stmt) noexcept
 {
-  v = sqlite3_column_int64(o.stmt(), o.index()++);
-
-  return o;
+  return sqlite3_column_int64(stmt, I);
 }
 
-template <typename T>
+template <typename T, int I = 0>
 inline typename ::std::enable_if<
   ::std::is_floating_point<T>{},
-  out&
+  T
 >::type
-operator>>(out& o, T& v) noexcept
+get(sqlite3_stmt* const stmt) noexcept
 {
-  v = sqlite3_column_double(o.stmt(), o.index()++);
-
-  return o;
+  return sqlite3_column_double(stmt, I);
 }
 
-template <typename T>
+template <typename T, int I = 0>
 inline typename ::std::enable_if<
-  ::std::is_same<typename ::std::decay<T>::type, char const*>{},
-  out&
+  ::std::is_same<T, char const*>{},
+  T
 >::type
-operator>>(out& o, T& v) noexcept
+get(sqlite3_stmt* const stmt) noexcept
 {
-  v = reinterpret_cast<char const*>(
-    sqlite3_column_text(o.stmt(), o.index()++)
-  );
-
-  return o;
+  return reinterpret_cast<char const*>(sqlite3_column_text(stmt, I));
 }
 
-template <typename T>
+template <typename T, int I = 0>
 inline typename ::std::enable_if<
-  ::std::is_same<typename ::std::decay<T>::type, void const*>{},
-  out&
+  ::std::is_same<T, void const*>{},
+  T
 >::type
-operator>>(out& o, T& v) noexcept
+get(sqlite3_stmt* const stmt) noexcept
 {
-  v = sqlite3_column_blob(o.stmt(), o.index()++);
+  return sqlite3_column_blob(stmt, I);
+}
 
-  return o;
+template <typename>
+struct is_std_pair : ::std::false_type { };
+
+template <class T1, class T2>
+struct is_std_pair<::std::pair<T1, T2> > : ::std::true_type { };
+
+template <typename T, int I = 0>
+inline typename ::std::enable_if<
+  is_std_pair<T>{},
+  T
+>::type
+get(sqlite3_stmt* const stmt) noexcept(
+  noexcept(
+    T(
+      get<typename T::first_type, I>(stmt),
+      get<typename T::second_type, I + 1>(stmt)
+    )
+  )
+)
+{
+  return {
+    get<typename T::first_type, I>(stmt),
+    get<typename T::second_type, I + 1>(stmt)
+  };
+}
+
+//forwarders//////////////////////////////////////////////////////////////////
+template <typename ...A>
+inline auto exec(stmt_t const& stmt, A&& ...args) noexcept(
+  noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec(stmt.get(), ::std::forward<A>(args)...);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+template <typename ...A>
+inline auto exec_front(stmt_t const& stmt, A&& ...args) noexcept(
+  noexcept(exec_front(stmt.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec_front(stmt.get(), ::std::forward<A>(args)...);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+template <typename ...A>
+inline auto get(stmt_t const& stmt) noexcept(
+  noexcept(get<A...>(stmt.get()))
+)
+{
+  return get<A...>(stmt.get());
 }
 
 }
