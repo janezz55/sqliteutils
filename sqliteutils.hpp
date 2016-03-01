@@ -28,116 +28,13 @@ using nullpair_t = ::std::pair<::std::nullptr_t const, sqlite3_uint64 const>;
 namespace detail
 {
 
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  blobpair_t const& v) noexcept
+struct swallow
 {
-  return sqlite3_bind_blob64(stmt, i, v.first, v.second, SQLITE_TRANSIENT);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  double const v) noexcept
-{
-  return sqlite3_bind_double(stmt, i, v);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  unsigned const v) noexcept
-{
-  return sqlite3_bind_int(stmt, i, v);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  unsigned long const v) noexcept
-{
-  return sqlite3_bind_int64(stmt, i, v);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  unsigned long long const v) noexcept
-{
-  return sqlite3_bind_int64(stmt, i, v);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  int const v) noexcept
-{
-  return sqlite3_bind_int(stmt, i, v);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  long int const v) noexcept
-{
-  return sqlite3_bind_int64(stmt, i, v);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  long long int const v) noexcept
-{
-  return sqlite3_bind_int64(stmt, i, v);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  ::std::nullptr_t const) noexcept
-{
-  return sqlite3_bind_null(stmt, i);
-}
-
-template <::std::size_t N>
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  char const (&v)[N]) noexcept
-{
-  return sqlite3_bind_text64(stmt, i, v, N, SQLITE_STATIC, SQLITE_UTF8);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  charpair_t const& v) noexcept
-{
-  return sqlite3_bind_text64(stmt, i, v.first, v.second, SQLITE_STATIC,
-    SQLITE_UTF8);
-}
-
-template <typename T,
-  typename = typename std::enable_if<
-    std::is_same<T, char>{}
-  >::type
->
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  T const* const& v) noexcept
-{
-  return sqlite3_bind_text(stmt, i, v, -1, SQLITE_TRANSIENT);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  ::std::string const& v) noexcept
-{
-  return sqlite3_bind_text64(stmt, i, v.c_str(), v.size(), SQLITE_TRANSIENT,
-    SQLITE_UTF8);
-}
-
-template <::std::size_t N>
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  char16_t const (&v)[N]) noexcept
-{
-  return sqlite3_bind_text(stmt, i, v, N, SQLITE_STATIC);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  char16_t const* v) noexcept
-{
-  return sqlite3_bind_text16(stmt, i, v, -1, SQLITE_TRANSIENT);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  char16pair_t const& v) noexcept
-{
-  return sqlite3_bind_text16(stmt, i, v.first, v.second, SQLITE_TRANSIENT);
-}
-
-inline auto bind(sqlite3_stmt* const stmt, int const i,
-  nullpair_t const& v) noexcept
-{
-  return sqlite3_bind_zeroblob64(stmt, i, v.second);
-}
+  template <typename ...T>
+  explicit swallow(T&& ...) noexcept
+  {
+  }
+};
 
 struct deleter
 {
@@ -147,88 +44,147 @@ struct deleter
   }
 };
 
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, blobpair_t const& v) noexcept
+{
+  return sqlite3_bind_blob64(stmt, I, v.first, v.second, SQLITE_TRANSIENT);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <typename T>
-inline auto bind(sqlite3_stmt* const stmt, int const i, T&& a) noexcept
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, double const v) noexcept
 {
-  return detail::bind(stmt, i, ::std::forward<T>(a));
+  return sqlite3_bind_double(stmt, I, v);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <typename T, typename ...A>
-inline int bind(sqlite3_stmt* const stmt, int const i, T&& a, A&& ...args)
-  noexcept
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, unsigned const v) noexcept
 {
-  auto const r(detail::bind(stmt, i, ::std::forward<T>(a)));
-
-  return SQLITE_OK == r ?
-    bind(stmt, i + 1, ::std::forward<A>(args)...) :
-    r;
+  return sqlite3_bind_int(stmt, I, v);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto bind_front(sqlite3_stmt* const stmt, A&& ...args) noexcept
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, unsigned long const v) noexcept
 {
-  return bind(stmt, 1, ::std::forward<A>(args)...);
+  return sqlite3_bind_int64(stmt, I, v);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, unsigned long long const v) noexcept
+{
+  return sqlite3_bind_int64(stmt, I, v);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, int const v) noexcept
+{
+  return sqlite3_bind_int(stmt, I, v);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, long int const v) noexcept
+{
+  return sqlite3_bind_int64(stmt, I, v);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, long long int const v) noexcept
+{
+  return sqlite3_bind_int64(stmt, I, v);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, ::std::nullptr_t const) noexcept
+{
+  return sqlite3_bind_null(stmt, I);
+}
+
+template <int I, ::std::size_t N>
+inline auto set(sqlite3_stmt* const stmt, char const (&v)[N]) noexcept
+{
+  return sqlite3_bind_text64(stmt, I, v, N, SQLITE_STATIC, SQLITE_UTF8);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, charpair_t const& v) noexcept
+{
+  return sqlite3_bind_text64(stmt, I, v.first, v.second, SQLITE_STATIC,
+    SQLITE_UTF8);
+}
+
+template <int I, typename T,
+  typename = typename std::enable_if<
+    std::is_same<T, char>{}
+  >::type
+>
+inline auto set(sqlite3_stmt* const stmt, T const* const& v) noexcept
+{
+  return sqlite3_bind_text64(stmt, I, v, -1, SQLITE_STATIC,
+    SQLITE_UTF8);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, ::std::string const& v) noexcept
+{
+  return sqlite3_bind_text64(stmt, I, v.c_str(), v.size(), SQLITE_TRANSIENT,
+    SQLITE_UTF8);
+}
+
+template <int I, ::std::size_t N>
+inline auto set(sqlite3_stmt* const stmt, char16_t const (&v)[N]) noexcept
+{
+  return sqlite3_bind_text(stmt, I, v, N, SQLITE_STATIC);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, char16_t const* v) noexcept
+{
+  return sqlite3_bind_text16(stmt, I, v, -1, SQLITE_TRANSIENT);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, char16pair_t const& v) noexcept
+{
+  return sqlite3_bind_text16(stmt, I, v.first, v.second, SQLITE_TRANSIENT);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const stmt, nullpair_t const& v) noexcept
+{
+  return sqlite3_bind_zeroblob64(stmt, I, v.second);
+}
+
+template <int I, ::std::size_t ...Is, typename ...A>
+void set(sqlite3_stmt* const stmt, ::std::index_sequence<Is...> const,
+  A&& ...args)
+{
+  swallow{set<I + Is>(stmt, args)...};
+}
+
 }
 
 using stmt_t = ::std::unique_ptr<sqlite3_stmt, detail::deleter>;
 
-//////////////////////////////////////////////////////////////////////////////
-inline auto exec(sqlite3* const db, char const* const a) noexcept
+//set/////////////////////////////////////////////////////////////////////////
+template <int I = 1, typename ...A>
+inline auto set(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
-  return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
+  detail::set<I>(stmt,
+    ::std::make_index_sequence<sizeof...(A)>(),
+    ::std::forward<A>(args)...
+  );
+
+  return stmt;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <::std::size_t N>
-inline auto exec(sqlite3* const db, char const (&a)[N]) noexcept
-{
-  return exec(db, &*a);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-inline auto exec(sqlite3* const db, ::std::string const& a) noexcept
-{
-  return exec(db, a.c_str());
-}
-
-//////////////////////////////////////////////////////////////////////////////
-inline auto exec(sqlite3_stmt* const stmt) noexcept
+template <int I = 1, typename ...A>
+inline auto rset(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
   sqlite3_reset(stmt);
 
-  return sqlite3_step(stmt);
+  return set<I>(stmt, ::std::forward<A>(args)...);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto exec(sqlite3_stmt* const stmt, int const i, A&& ...args) noexcept
-{
-  sqlite3_reset(stmt);
-
-  auto result(bind(stmt, i, ::std::forward<A>(args)...));
-  assert(SQLITE_OK == result);
-
-  return sqlite3_step(stmt);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto exec_front(sqlite3_stmt* const stmt, A&& ...args) noexcept
-{
-  sqlite3_reset(stmt);
-
-  auto result(bind_front(stmt, ::std::forward<A>(args)...));
-  assert(SQLITE_OK == result);
-
-  return sqlite3_step(stmt);
-}
-
-//////////////////////////////////////////////////////////////////////////////
+//make_stmt///////////////////////////////////////////////////////////////////
 template <typename T,
   typename = typename std::enable_if<
     std::is_same<T, char>{}
@@ -239,86 +195,128 @@ inline stmt_t make_stmt(sqlite3* const db, T const* const& a,
 {
   sqlite3_stmt* stmt;
 
+#ifndef NDEBUG
   auto const result(sqlite3_prepare_v2(db, a, size, &stmt, nullptr));
   assert(SQLITE_OK == result);
 
   return stmt_t(stmt);
+#else
+  return stmt_t(sqlite3_prepare_v2(db, a, size, &stmt, nullptr));
+#endif // NDEBUG
 }
 
-//////////////////////////////////////////////////////////////////////////////
 template <::std::size_t N>
 inline stmt_t make_stmt(sqlite3* const db, char const (&a)[N]) noexcept
 {
-  return make_stmt(db, &*a, N);
+  sqlite3_stmt* stmt;
+
+#ifndef NDEBUG
+  auto const result(sqlite3_prepare_v2(db, a, N, &stmt, nullptr));
+  assert(SQLITE_OK == result);
+
+  return stmt_t(stmt);
+#else
+  return stmt_t(sqlite3_prepare_v2(db, a, N, &stmt, nullptr));
+#endif // NDEBUG
 }
 
-//////////////////////////////////////////////////////////////////////////////
 inline stmt_t make_stmt(sqlite3* const db, ::std::string const& a) noexcept
 {
   return make_stmt(db, a.c_str(), a.size());
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto exec(sqlite3* const db, char const* const a, int const i,
-  A&& ...args) noexcept
+//exec ///////////////////////////////////////////////////////////////////////
+template <int I = 1>
+inline auto exec(sqlite3_stmt* const stmt) noexcept
 {
-  return exec(make_stmt(db, a), i, ::std::forward<A>(args)...);
+  return sqlite3_step(stmt);
 }
 
-//forwarders//////////////////////////////////////////////////////////////////
-template <typename ...A>
+template <int I = 1, typename ...A>
+inline auto exec(sqlite3_stmt* const stmt, A&& ...args) noexcept
+{
+  return exec(set<I>(stmt, ::std::forward<A>(args)...));
+}
+
+template <int I = 1>
+inline auto rexec(sqlite3_stmt* const stmt) noexcept
+{
+  sqlite3_reset(stmt);
+
+  return sqlite3_step(stmt);
+}
+
+template <int I = 1, typename ...A>
+inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
+{
+  return exec(rset<I>(stmt, ::std::forward<A>(args)...));
+}
+
+template <int I = 1, typename ...A>
 inline auto exec(stmt_t const& stmt, A&& ...args) noexcept(
   noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
 )
 {
-  return exec(stmt.get(), ::std::forward<A>(args)...);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-template <::std::size_t N, typename ...A>
-inline auto exec(sqlite3* const db, char const (&a)[N], int const i,
-  A&& ...args) noexcept
-{
-  return exec(make_stmt<N>(db, a), i, ::std::forward<A>(args)...);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-template <::std::size_t N, typename ...A>
-inline auto exec(sqlite3* const db, ::std::string const& a, int const i,
-  A&& ...args) noexcept
-{
-  return exec(
-    make_stmt(db, a.c_str(), a.size()), i, ::std::forward<A>(args)...
+  return exec<I>(
+    stmt.get(),
+    ::std::forward<A>(args)...
   );
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <::std::size_t N, typename ...A>
-inline auto exec_front(sqlite3* const db, char const (&a)[N],
-  A&& ...args) noexcept
-{
-  return exec<N, A...>(db, a, 1, ::std::forward<A>(args)...);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto exec_front(stmt_t const& stmt, A&& ...args) noexcept(
-  noexcept(exec_front(stmt.get(), ::std::forward<A>(args)...))
+template <int I = 0, typename ...A>
+inline auto rexec(stmt_t const& stmt, A&& ...args) noexcept(
+  noexcept(rexec(stmt.get(), ::std::forward<A>(args)...))
 )
 {
-  return exec_front(stmt.get(), ::std::forward<A>(args)...);
+  return rexec<I>(
+    stmt.get(),
+    ::std::forward<A>(args)...
+  );
 }
 
-//////////////////////////////////////////////////////////////////////////////
-template <::std::size_t N, typename ...A>
-inline auto exec_front(sqlite3* const db, ::std::string const& a,
+template <int I = 0, typename T, typename ...A,
+  typename = typename std::enable_if<
+    std::is_same<T, char>{}
+  >::type
+>
+inline auto exec(sqlite3* const db, T const* const& a, A&& ...args) noexcept
+{
+  return exec<I>(
+    make_stmt(db, a),
+    ::std::forward<A>(args)...
+  );
+}
+
+template <int I = 0, ::std::size_t N, typename ...A>
+inline auto exec(sqlite3* const db, char const (&a)[N], A&& ...args) noexcept
+{
+  return exec<I>(
+    make_stmt<N>(db, a),
+    ::std::forward<A>(args)...
+  );
+}
+
+template <int I = 0, ::std::size_t N, typename ...A>
+inline auto exec(sqlite3* const db, ::std::string const& a,
   A&& ...args) noexcept
 {
-  return exec(db, a, 1, ::std::forward<A>(args)...);
+  return exec<I>(
+    make_stmt(db, a.c_str(), a.size()),
+    ::std::forward<A>(args)...
+  );
 }
 
-//////////////////////////////////////////////////////////////////////////////
+inline auto exec(sqlite3* const db, char const* const a) noexcept
+{
+  return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
+}
+
+inline auto exec(sqlite3* const db, ::std::string const& a) noexcept
+{
+  return exec(db, a.c_str());
+}
+
+//get/////////////////////////////////////////////////////////////////////////
 template <typename T, int I = 0>
 inline typename ::std::enable_if<
   ::std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
@@ -395,13 +393,27 @@ get(sqlite3_stmt* const stmt) noexcept(
   };
 }
 
-//forwarders//////////////////////////////////////////////////////////////////
-template <typename ...A>
+template <typename T, int I = 0>
 inline auto get(stmt_t const& stmt) noexcept(
-  noexcept(get<A...>(stmt.get()))
+  noexcept(get<T, I>(stmt.get()))
 )
 {
-  return get<A...>(stmt.get());
+  return get<T, I>(stmt.get());
+}
+
+//size////////////////////////////////////////////////////////////////////////
+template <int I = 0>
+inline auto size(sqlite3_stmt* const stmt) noexcept
+{
+  return sqlite3_column_bytes(stmt, I);
+}
+
+template <int I = 0>
+inline auto size(stmt_t const& stmt) noexcept(
+  noexcept(size<I>(stmt.get()))
+)
+{
+  return size<I>(stmt.get());
 }
 
 }
