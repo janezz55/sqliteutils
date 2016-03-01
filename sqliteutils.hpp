@@ -266,6 +266,15 @@ inline auto exec(sqlite3* const db, char const* const a, int const i,
   return exec(make_stmt(db, a), i, ::std::forward<A>(args)...);
 }
 
+//forwarders//////////////////////////////////////////////////////////////////
+template <typename ...A>
+inline auto exec(stmt_t const& stmt, A&& ...args) noexcept(
+  noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec(stmt.get(), ::std::forward<A>(args)...);
+}
+
 //////////////////////////////////////////////////////////////////////////////
 template <::std::size_t N, typename ...A>
 inline auto exec(sqlite3* const db, char const (&a)[N], int const i,
@@ -290,6 +299,15 @@ inline auto exec_front(sqlite3* const db, char const (&a)[N],
   A&& ...args) noexcept
 {
   return exec<N, A...>(db, a, 1, ::std::forward<A>(args)...);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+template <typename ...A>
+inline auto exec_front(stmt_t const& stmt, A&& ...args) noexcept(
+  noexcept(exec_front(stmt.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec_front(stmt.get(), ::std::forward<A>(args)...);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -378,24 +396,6 @@ get(sqlite3_stmt* const stmt) noexcept(
 }
 
 //forwarders//////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto exec(stmt_t const& stmt, A&& ...args) noexcept(
-  noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
-)
-{
-  return exec(stmt.get(), ::std::forward<A>(args)...);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-template <typename ...A>
-inline auto exec_front(stmt_t const& stmt, A&& ...args) noexcept(
-  noexcept(exec_front(stmt.get(), ::std::forward<A>(args)...))
-)
-{
-  return exec_front(stmt.get(), ::std::forward<A>(args)...);
-}
-
-//////////////////////////////////////////////////////////////////////////////
 template <typename ...A>
 inline auto get(stmt_t const& stmt) noexcept(
   noexcept(get<A...>(stmt.get()))
