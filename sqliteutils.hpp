@@ -263,7 +263,7 @@ inline auto exec(stmt_t const& stmt, A&& ...args) noexcept(
   );
 }
 
-template <int I = 0, typename ...A>
+template <int I = 1, typename ...A>
 inline auto rexec(stmt_t const& stmt, A&& ...args) noexcept(
   noexcept(rexec(stmt.get(), ::std::forward<A>(args)...))
 )
@@ -274,7 +274,7 @@ inline auto rexec(stmt_t const& stmt, A&& ...args) noexcept(
   );
 }
 
-template <int I = 0, typename T, typename ...A,
+template <int I = 1, typename T, typename ...A,
   typename = typename std::enable_if<
     std::is_same<T, char>{}
   >::type
@@ -287,7 +287,7 @@ inline auto exec(sqlite3* const db, T const* const& a, A&& ...args) noexcept
   );
 }
 
-template <int I = 0, ::std::size_t N, typename ...A>
+template <int I = 1, ::std::size_t N, typename ...A>
 inline auto exec(sqlite3* const db, char const (&a)[N], A&& ...args) noexcept
 {
   return exec<I>(
@@ -296,7 +296,7 @@ inline auto exec(sqlite3* const db, char const (&a)[N], A&& ...args) noexcept
   );
 }
 
-template <int I = 0, ::std::size_t N, typename ...A>
+template <int I = 1, ::std::size_t N, typename ...A>
 inline auto exec(sqlite3* const db, ::std::string const& a,
   A&& ...args) noexcept
 {
@@ -317,54 +317,54 @@ inline auto exec(sqlite3* const db, ::std::string const& a) noexcept
 }
 
 //get/////////////////////////////////////////////////////////////////////////
-template <typename T, int I = 0>
+template <typename T>
 inline typename ::std::enable_if<
   ::std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
   T
 >::type
-get(sqlite3_stmt* const stmt) noexcept
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
-  return sqlite3_column_int(stmt, I);
+  return sqlite3_column_int(stmt, i);
 }
 
-template <typename T, int I = 0>
+template <typename T>
 inline typename ::std::enable_if<
   ::std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
   T
 >::type
-get(sqlite3_stmt* const stmt) noexcept
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
-  return sqlite3_column_int64(stmt, I);
+  return sqlite3_column_int64(stmt, i);
 }
 
-template <typename T, int I = 0>
+template <typename T>
 inline typename ::std::enable_if<
   ::std::is_floating_point<T>{},
   T
 >::type
-get(sqlite3_stmt* const stmt) noexcept
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
-  return sqlite3_column_double(stmt, I);
+  return sqlite3_column_double(stmt, i);
 }
 
-template <typename T, int I = 0>
+template <typename T>
 inline typename ::std::enable_if<
   ::std::is_same<T, char const*>{},
   T
 >::type
-get(sqlite3_stmt* const stmt) noexcept
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
-  return reinterpret_cast<char const*>(sqlite3_column_text(stmt, I));
+  return reinterpret_cast<char const*>(sqlite3_column_text(stmt, i));
 }
 
-template <typename T, int I = 0>
+template <typename T>
 inline typename ::std::enable_if<
   ::std::is_same<T, void const*>{},
   T
 >::type
-get(sqlite3_stmt* const stmt) noexcept
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
-  return sqlite3_column_blob(stmt, I);
+  return sqlite3_column_blob(stmt, i);
 }
 
 template <typename>
@@ -373,47 +373,58 @@ struct is_std_pair : ::std::false_type { };
 template <class T1, class T2>
 struct is_std_pair<::std::pair<T1, T2> > : ::std::true_type { };
 
-template <typename T, int I = 0>
+template <typename T>
 inline typename ::std::enable_if<
   is_std_pair<T>{},
   T
 >::type
-get(sqlite3_stmt* const stmt) noexcept(
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
   noexcept(
     T(
-      get<typename T::first_type, I>(stmt),
-      get<typename T::second_type, I + 1>(stmt)
+      get<typename T::first_type>(stmt, i),
+      get<typename T::second_type>(stmt, i + 1)
     )
   )
 )
 {
   return {
-    get<typename T::first_type, I>(stmt),
-    get<typename T::second_type, I + 1>(stmt)
+    get<typename T::first_type>(stmt, i),
+    get<typename T::second_type>(stmt, i + 1)
   };
 }
 
-template <typename T, int I = 0>
-inline auto get(stmt_t const& stmt) noexcept(
-  noexcept(get<T, I>(stmt.get()))
+template <typename T>
+inline auto get(stmt_t const& stmt, int const i = 0) noexcept(
+  noexcept(get<T>(stmt.get(), i))
 )
 {
-  return get<T, I>(stmt.get());
+  return get<T>(stmt.get(), i);
+}
+
+//column_count////////////////////////////////////////////////////////////////
+inline auto column_count(sqlite3_stmt* const stmt) noexcept
+{
+  return sqlite3_column_count(stmt);
+}
+
+inline auto column_count(stmt_t const& stmt) noexcept(
+  noexcept(column_count(stmt.get()))
+)
+{
+  return column_count(stmt.get());
 }
 
 //size////////////////////////////////////////////////////////////////////////
-template <int I = 0>
-inline auto size(sqlite3_stmt* const stmt) noexcept
+inline auto size(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
-  return sqlite3_column_bytes(stmt, I);
+  return sqlite3_column_bytes(stmt, i);
 }
 
-template <int I = 0>
-inline auto size(stmt_t const& stmt) noexcept(
-  noexcept(size<I>(stmt.get()))
+inline auto size(stmt_t const& stmt, int const i = 0) noexcept(
+  noexcept(size(stmt.get(), i))
 )
 {
-  return size<I>(stmt.get());
+  return size(stmt.get(), i);
 }
 
 }
