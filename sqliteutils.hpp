@@ -82,6 +82,13 @@ inline auto bind(sqlite3_stmt* const stmt, int const i,
   return sqlite3_bind_null(stmt, i);
 }
 
+template <::std::size_t N>
+inline auto bind(sqlite3_stmt* const stmt, int const i,
+  char const (&v)[N]) noexcept
+{
+  return sqlite3_bind_text(stmt, i, v, N, SQLITE_STATIC);
+}
+
 inline auto bind(sqlite3_stmt* const stmt, int const i,
   charpair_t const& v) noexcept
 {
@@ -89,9 +96,28 @@ inline auto bind(sqlite3_stmt* const stmt, int const i,
 }
 
 inline auto bind(sqlite3_stmt* const stmt, int const i,
+  char const* const v) noexcept
+{
+  return sqlite3_bind_text(stmt, i, v, -1, SQLITE_TRANSIENT);
+}
+
+inline auto bind(sqlite3_stmt* const stmt, int const i,
   ::std::string const& v) noexcept
 {
   return sqlite3_bind_text(stmt, i, v.c_str(), v.size(), SQLITE_TRANSIENT);
+}
+
+template <::std::size_t N>
+inline auto bind(sqlite3_stmt* const stmt, int const i,
+  char16_t const (&v)[N]) noexcept
+{
+  return sqlite3_bind_text(stmt, i, v, N, SQLITE_STATIC);
+}
+
+inline auto bind(sqlite3_stmt* const stmt, int const i,
+  char16_t const* v) noexcept
+{
+  return sqlite3_bind_text16(stmt, i, v.first, -1, SQLITE_TRANSIENT);
 }
 
 inline auto bind(sqlite3_stmt* const stmt, int const i,
