@@ -156,14 +156,6 @@ inline void set(sqlite3_stmt* const stmt, A&& ...args) noexcept
   );
 }
 
-template <int I = 1, typename ...A>
-inline auto rset(sqlite3_stmt* const stmt, A&& ...args) noexcept
-{
-  sqlite3_reset(stmt);
-
-  return set<I>(stmt, ::std::forward<A>(args)...);
-}
-
 //make_stmt///////////////////////////////////////////////////////////////////
 template <typename T,
   typename = typename std::enable_if<
@@ -229,7 +221,9 @@ inline auto rexec(sqlite3_stmt* const stmt) noexcept
 template <int I = 1, typename ...A>
 inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
-  rset<I>(stmt, ::std::forward<A>(args)...);
+  sqlite3_reset(stmt);
+
+  set<I>(stmt, ::std::forward<A>(args)...);
 
   return exec(stmt);
 }
