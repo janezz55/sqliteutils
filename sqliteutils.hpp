@@ -148,14 +148,12 @@ using stmt_t = ::std::unique_ptr<sqlite3_stmt, detail::deleter>;
 
 //set/////////////////////////////////////////////////////////////////////////
 template <int I = 1, typename ...A>
-inline auto set(sqlite3_stmt* const stmt, A&& ...args) noexcept
+inline void set(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
   detail::set<I>(stmt,
     ::std::make_index_sequence<sizeof...(A)>(),
     ::std::forward<A>(args)...
   );
-
-  return stmt;
 }
 
 template <int I = 1, typename ...A>
@@ -215,7 +213,9 @@ inline auto exec(sqlite3_stmt* const stmt) noexcept
 template <int I = 1, typename ...A>
 inline auto exec(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
-  return exec(set<I>(stmt, ::std::forward<A>(args)...));
+  set<I>(stmt, ::std::forward<A>(args)...);
+
+  return exec(stmt);
 }
 
 template <int I = 1>
@@ -229,7 +229,9 @@ inline auto rexec(sqlite3_stmt* const stmt) noexcept
 template <int I = 1, typename ...A>
 inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
-  return exec(rset<I>(stmt, ::std::forward<A>(args)...));
+  rset<I>(stmt, ::std::forward<A>(args)...);
+
+  return exec(stmt);
 }
 
 template <int I = 1, typename ...A>
