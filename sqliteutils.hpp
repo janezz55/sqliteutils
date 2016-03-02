@@ -427,6 +427,19 @@ inline auto column_name16(stmt_t const& stmt, int const i = 0) noexcept(
   return column_name16(stmt.get(), i);
 }
 
+//reset///////////////////////////////////////////////////////////////////////
+inline auto reset(sqlite3_stmt* const stmt) noexcept
+{
+  return sqlite3_reset(stmt);
+}
+
+inline auto reset(stmt_t const& stmt) noexcept(
+  noexcept(reset(stmt.get()))
+)
+{
+  return reset(stmt.get());
+}
+
 //size////////////////////////////////////////////////////////////////////////
 inline auto size(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
@@ -438,6 +451,37 @@ inline auto size(stmt_t const& stmt, int const i = 0) noexcept(
 )
 {
   return size(stmt.get(), i);
+}
+
+//for_each////////////////////////////////////////////////////////////////////
+template <typename F>
+void for_each(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
+{
+  for (;;)
+  {
+    switch (exec(stmt))
+    {
+      case SQLITE_DONE:;
+        break;
+
+      case SQLITE_ROW:
+        if (!f())
+        {
+          break;
+        }
+        else
+        {
+          continue;
+        }
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  reset(stmt);
 }
 
 }
