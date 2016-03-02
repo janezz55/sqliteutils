@@ -237,10 +237,7 @@ inline auto exec(stmt_t const& stmt, A&& ...args) noexcept(
   noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
 )
 {
-  return exec<I>(
-    stmt.get(),
-    ::std::forward<A>(args)...
-  );
+  return exec<I>(stmt.get(), ::std::forward<A>(args)...);
 }
 
 template <int I = 1, typename ...A>
