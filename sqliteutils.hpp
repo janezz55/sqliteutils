@@ -454,8 +454,95 @@ inline auto size(stmt_t const& stmt, int const i = 0) noexcept(
 }
 
 //for_each////////////////////////////////////////////////////////////////////
+namespace
+{
+
+template <typename ...A, typename F, ::std::size_t ...Is>
+inline void foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
+  ::std::index_sequence<Is...> const) noexcept(
+    noexcept(f(::std::declval<A>()...))
+  )
+{
+  for (;;)
+  {
+    switch (exec(stmt))
+    {
+      case SQLITE_DONE:;
+        break;
+
+      case SQLITE_ROW:
+        if (!f(
+            get<::std::remove_const_t<::std::remove_reference_t<A> > >(
+              stmt, i + Is
+            )...
+          )
+        )
+        {
+          break;
+        }
+        else
+        {
+          continue;
+        }
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+}
+
+template <typename F, typename R, typename ...A>
+inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
+  int const i, R (F::*)(A...)) noexcept(
+    noexcept(
+      foreach_row_apply<A...>(stmt,
+        ::std::forward<F>(f),
+        i,
+        ::std::make_index_sequence<sizeof...(A)>()
+      )
+    )
+  )
+{
+  foreach_row_apply<A...>(stmt,
+    ::std::forward<F>(f),
+    i,
+    ::std::make_index_sequence<sizeof...(A)>()
+  );
+}
+
+template <typename F, typename R, typename ...A>
+inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
+  int const i, R (F::*)(A...) const) noexcept(
+    noexcept(
+      foreach_row_apply<A...>(stmt,
+        ::std::forward<F>(f),
+        i,
+        ::std::make_index_sequence<sizeof...(A)>()
+      )
+    )
+  )
+{
+  foreach_row_apply<A...>(stmt,
+    ::std::forward<F>(f),
+    i,
+    ::std::make_index_sequence<sizeof...(A)>()
+  );
+}
+
+}
+
 template <typename F>
-void for_each(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
+inline void foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
+  noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator()))
+)
+{
+  foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator());
+}
+
+template <typename F>
+void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 {
   for (;;)
   {
@@ -480,8 +567,6 @@ void for_each(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 
     break;
   }
-
-  reset(stmt);
 }
 
 }
