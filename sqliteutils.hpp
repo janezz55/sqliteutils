@@ -47,7 +47,7 @@ struct deleter
 template <int I>
 inline void set(sqlite3_stmt* const stmt, blobpair_t const& v) noexcept
 {
-  sqlite3_bind_blob64(stmt, I, v.first, v.second, SQLITE_TRANSIENT);
+  sqlite3_bind_blob64(stmt, I, v.first, v.second, SQLITE_STATIC);
 }
 
 template <int I>
@@ -91,7 +91,8 @@ inline void set(sqlite3_stmt* const stmt, char const (&v)[N]) noexcept
 template <int I>
 inline void set(sqlite3_stmt* const stmt, charpair_t const& v) noexcept
 {
-  sqlite3_bind_text64(stmt, I, v.first, v.second, SQLITE_STATIC, SQLITE_UTF8);
+  sqlite3_bind_text64(stmt, I, v.first, v.second, SQLITE_TRANSIENT,
+    SQLITE_UTF8);
 }
 
 template <int I, typename T,
@@ -114,19 +115,22 @@ inline void set(sqlite3_stmt* const stmt, ::std::string const& v) noexcept
 template <int I, ::std::size_t N>
 inline void set(sqlite3_stmt* const stmt, char16_t const (&v)[N]) noexcept
 {
-  sqlite3_bind_text(stmt, I, v, N, SQLITE_STATIC);
+  sqlite3_bind_text64(stmt, I, reinterpret_cast<char const*>(v), N,
+    SQLITE_STATIC, SQLITE_UTF16);
 }
 
 template <int I>
 inline void set(sqlite3_stmt* const stmt, char16_t const* v) noexcept
 {
-  sqlite3_bind_text16(stmt, I, v, -1, SQLITE_TRANSIENT);
+  sqlite3_bind_text64(stmt, I, reinterpret_cast<char const*>(v), -1,
+    SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I>
 inline void set(sqlite3_stmt* const stmt, char16pair_t const& v) noexcept
 {
-  sqlite3_bind_text16(stmt, I, v.first, v.second, SQLITE_TRANSIENT);
+  sqlite3_bind_text64(stmt, I, reinterpret_cast<char const*>(v.first),
+    v.second, SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I>
