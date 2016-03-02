@@ -382,6 +382,19 @@ inline auto column_count(stmt_t const& stmt) noexcept(
   return column_count(stmt.get());
 }
 
+//column_name/////////////////////////////////////////////////////////////////
+inline auto column_name(sqlite3_stmt* const stmt, int const i = 0) noexcept
+{
+  return sqlite3_column_name(stmt, i);
+}
+
+inline auto column_name(stmt_t const& stmt, int const i = 0) noexcept(
+  noexcept(column_name(stmt.get(), i))
+)
+{
+  return column_name(stmt.get(), i);
+}
+
 //size////////////////////////////////////////////////////////////////////////
 inline auto size(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
