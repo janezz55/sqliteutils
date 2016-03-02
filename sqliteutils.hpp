@@ -369,6 +369,25 @@ inline auto get(stmt_t const& stmt, int const i = 0) noexcept(
   return get<T>(stmt.get(), i);
 }
 
+//changes/////////////////////////////////////////////////////////////////////
+inline auto changes(sqlite3* const db) noexcept
+{
+  return sqlite3_changes(db);
+}
+
+//clear_bindings//////////////////////////////////////////////////////////////
+inline auto clear_bindings(sqlite3_stmt* const stmt) noexcept
+{
+  return sqlite3_clear_bindings(stmt);
+}
+
+inline auto clear_bindings(stmt_t const& stmt) noexcept(
+  noexcept(clear_bindings(stmt.get()))
+)
+{
+  return clear_bindings(stmt.get());
+}
+
 //column_count////////////////////////////////////////////////////////////////
 inline auto column_count(sqlite3_stmt* const stmt) noexcept
 {
@@ -393,6 +412,19 @@ inline auto column_name(stmt_t const& stmt, int const i = 0) noexcept(
 )
 {
   return column_name(stmt.get(), i);
+}
+
+//column_name16///////////////////////////////////////////////////////////////
+inline auto column_name16(sqlite3_stmt* const stmt, int const i = 0) noexcept
+{
+  return static_cast<char16_t const*>(sqlite3_column_name16(stmt, i));
+}
+
+inline auto column_name16(stmt_t const& stmt, int const i = 0) noexcept(
+  noexcept(column_name16(stmt.get(), i))
+)
+{
+  return column_name16(stmt.get(), i);
 }
 
 //size////////////////////////////////////////////////////////////////////////
