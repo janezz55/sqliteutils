@@ -467,9 +467,6 @@ inline void foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
   {
     switch (exec(stmt))
     {
-      case SQLITE_DONE:;
-        break;
-
       case SQLITE_ROW:
         if (!f(
             get<::std::remove_const_t<::std::remove_reference_t<A> > >(
@@ -484,6 +481,9 @@ inline void foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
         {
           continue;
         }
+
+      case SQLITE_DONE:;
+        break;
 
       default:
         assert(!"unhandled result from exec");
@@ -568,9 +568,6 @@ void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
   {
     switch (exec(stmt))
     {
-      case SQLITE_DONE:;
-        break;
-
       case SQLITE_ROW:
         if (!f())
         {
@@ -580,6 +577,9 @@ void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
         {
           continue;
         }
+
+      case SQLITE_DONE:;
+        break;
 
       default:
         assert(!"unhandled result from exec");
