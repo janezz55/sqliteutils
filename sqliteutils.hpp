@@ -199,6 +199,24 @@ inline stmt_t make_stmt(sqlite3* const db, ::std::string const& a) noexcept
   return make_stmt(db, a.c_str(), a.size());
 }
 
+// forwarders
+template <typename T, typename ...A>
+inline auto make_stmt(::std::shared_ptr<T> const& db, A&& ...args) noexcept(
+  noexcept(make_stmt(db.get(), ::std::forward<A>(args)...))
+)
+{
+  return make_stmt(db.get(), ::std::forward<A>(args)...);
+}
+
+template <typename T, typename D, typename ...A>
+inline auto make_stmt(::std::unique_ptr<T, D> const& db,
+  A&& ...args) noexcept(
+    noexcept(make_stmt(db.get(), ::std::forward<A>(args)...))
+  )
+{
+  return make_stmt(db.get(), ::std::forward<A>(args)...);
+}
+
 //exec ///////////////////////////////////////////////////////////////////////
 template <int I = 1>
 inline auto exec(sqlite3_stmt* const stmt) noexcept
@@ -232,6 +250,7 @@ inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
   return exec(stmt);
 }
 
+// forwarders
 template <int I = 1, typename ...A>
 inline auto exec(stmt_t const& stmt, A&& ...args) noexcept(
   noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
@@ -248,29 +267,19 @@ inline auto rexec(stmt_t const& stmt, A&& ...args) noexcept(
   return rexec<I>(stmt.get(), ::std::forward<A>(args)...);
 }
 
-template <int I = 1, typename T, typename ...A,
-  typename = typename std::enable_if<
-    std::is_same<T, char>{}
-  >::type
->
-inline auto exec(sqlite3* const db, T const* const& a, A&& ...args) noexcept
-{
-  return exec<I>(make_stmt(db, a), ::std::forward<A>(args)...);
-}
-
-template <int I = 1, ::std::size_t N, typename ...A>
-inline auto exec(sqlite3* const db, char const (&a)[N], A&& ...args) noexcept
-{
-  return exec<I>(make_stmt<N>(db, a), ::std::forward<A>(args)...);
-}
-
-template <int I = 1, ::std::size_t N, typename ...A>
-inline auto exec(sqlite3* const db, ::std::string const& a,
-  A&& ...args) noexcept
+template <int I = 1, typename A, typename ...B>
+inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
+  noexcept(
+    exec<I>(
+      make_stmt(db, ::std::forward<A>(a)),
+      ::std::forward<B>(args)...
+    )
+  )
+)
 {
   return exec<I>(
-    make_stmt(db, a.c_str(), a.size()),
-    ::std::forward<A>(args)...
+    make_stmt(db, ::std::forward<A>(a)),
+    ::std::forward<B>(args)...
   );
 }
 
@@ -282,6 +291,23 @@ inline auto exec(sqlite3* const db, char const* const a) noexcept
 inline auto exec(sqlite3* const db, ::std::string const& a) noexcept
 {
   return exec(db, a.c_str());
+}
+
+// forwarders
+template <typename T, typename ...A>
+inline auto exec(::std::shared_ptr<T> const& db, A&& ...args) noexcept(
+  noexcept(exec(db.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec(db.get(), ::std::forward<A>(args)...);
+}
+
+template <typename T, typename D, typename ...A>
+inline auto exec(::std::unique_ptr<T, D> const& db, A&& ...args) noexcept(
+  noexcept(exec(db.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec(db.get(), ::std::forward<A>(args)...);
 }
 
 //get/////////////////////////////////////////////////////////////////////////
@@ -367,6 +393,34 @@ inline auto get(stmt_t const& stmt, int const i = 0) noexcept(
 )
 {
   return get<T>(stmt.get(), i);
+}
+
+//execget/////////////////////////////////////////////////////////////////////
+template <typename T, typename S, typename ...A>
+inline auto execget(S&& stmt, int const i = 0, A&& ...args)
+{
+  auto const r(exec(::std::forward<S>(stmt), ::std::forward<A>(args)...));
+  assert(SQLITE_ROW == r);
+
+  return get<T>(stmt, i);
+}
+
+template <typename T, typename S, typename ...A>
+inline auto rexecget(S&& stmt, int const i = 0, A&& ...args)
+{
+  auto const r(rexec(::std::forward<S>(stmt), ::std::forward<A>(args)...));
+  assert(SQLITE_ROW == r);
+
+  return get<T>(stmt, i);
+}
+
+template <typename T, typename D, typename A, typename ...B>
+inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args)
+{
+  return execget<T>(make_stmt(::std::forward<D>(db), ::std::forward<A>(a)),
+    i,
+    ::std::forward<B>(args)...
+  );
 }
 
 //changes/////////////////////////////////////////////////////////////////////
