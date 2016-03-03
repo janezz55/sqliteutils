@@ -468,18 +468,18 @@ inline void foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
     switch (exec(stmt))
     {
       case SQLITE_ROW:
-        if (!f(
+        if (f(
             get<::std::remove_const_t<::std::remove_reference_t<A> > >(
               stmt, i + Is
             )...
           )
         )
         {
-          break;
+          continue;
         }
         else
         {
-          continue;
+          break;
         }
 
       case SQLITE_DONE:;
@@ -569,13 +569,13 @@ void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
     switch (exec(stmt))
     {
       case SQLITE_ROW:
-        if (!f())
+        if (f())
         {
-          break;
+          continue;
         }
         else
         {
-          continue;
+          break;
         }
 
       case SQLITE_DONE:;
