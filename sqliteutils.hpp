@@ -541,6 +541,26 @@ inline void foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
   foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator());
 }
 
+template <typename ...A, typename F,
+  typename = typename ::std::enable_if<bool(sizeof...(A))>::type
+>
+inline void foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
+  noexcept(
+    foreach_row_apply<A...>(stmt,
+      ::std::forward<F>(f),
+      i,
+      ::std::make_index_sequence<sizeof...(A)>()
+    )
+  )
+)
+{
+  foreach_row_apply<A...>(stmt,
+    ::std::forward<F>(f),
+    i,
+    ::std::make_index_sequence<sizeof...(A)>()
+  );
+}
+
 template <typename F>
 void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 {
