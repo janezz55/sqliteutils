@@ -353,6 +353,32 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 
 template <typename T>
 inline typename ::std::enable_if<
+  ::std::is_same<T, charpair_t>{},
+  T
+>::type
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
+{
+  return {
+    get<char const*>(stmt, i),
+    sqlite3_column_bytes(stmt, i)
+  };
+}
+
+template <typename T>
+inline typename ::std::enable_if<
+  ::std::is_same<T, ::std::string>{},
+  T
+>::type
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
+{
+  return {
+    get<char const*>(stmt, i),
+    sqlite3_column_bytes(stmt, i)
+  };
+}
+
+template <typename T>
+inline typename ::std::enable_if<
   ::std::is_same<T, void const*>{},
   T
 >::type
@@ -421,6 +447,35 @@ inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args)
     i,
     ::std::forward<B>(args)...
   );
+}
+
+//col/////////////////////////////////////////////////////////////////////////
+template <typename ...A>
+class col
+{
+  int const i_;
+
+public:
+  constexpr explicit col(decltype(i_) const i) noexcept : i_(i) { }
+
+  constexpr auto i() const { return i_; }
+};
+
+template <typename ...A>
+auto operator|(stmt_t const& stmt, col<A...> const& g) noexcept(
+  noexcept(exec(stmt)) || noexcept(col<A...>(stmt, g.i()))
+)
+{
+  assert(stmt);
+
+#ifndef NDEBUG
+  auto const r(exec(stmt));
+  assert(SQLITE_ROW == r);
+#else
+  exec(stmt);
+#endif // NDEBUG
+
+  return get<A...>(stmt, g.i());
 }
 
 //changes/////////////////////////////////////////////////////////////////////
@@ -641,6 +696,195 @@ void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 
     break;
   }
+}
+
+//emplace_back////////////////////////////////////////////////////////////////
+template <typename C>
+inline void emplace_back(stmt_t const& stmt, C& c, int const i = 0)
+{
+  for (;;)
+  {
+    switch (exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.emplace_back(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+}
+
+//emplace_back_n//////////////////////////////////////////////////////////////
+template <typename C, typename T>
+inline bool emplace_back_n(stmt_t const& stmt, C& c, T const n,
+  int const i = 0)
+{
+  for (T j{}; j != n; ++j)
+  {
+    switch (exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.emplace_back(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:;
+        return false;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return true;
+}
+
+//emplace/////////////////////////////////////////////////////////////////////
+template <typename C>
+inline void emplace(stmt_t const& stmt, C& c, int const i = 0)
+{
+  for (;;)
+  {
+    switch (exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.emplace(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+}
+
+//emplace_n///////////////////////////////////////////////////////////////////
+template <typename C, typename T>
+inline bool emplace_n(stmt_t const& stmt, C& c, T const n, int const i = 0)
+{
+  for (T j{}; j != n; ++j)
+  {
+    switch (exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.emplace(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:;
+        return false;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return true;
+}
+
+//|operators//////////////////////////////////////////////////////////////////
+namespace
+{
+  template <typename C>
+  auto emplace_back_(stmt_t const& stmt, void* p, int const i)
+  {
+    return emplace_back(stmt, *static_cast<C*>(p), i);
+  }
+}
+
+class emplace_backer
+{
+  bool (* const f_)(stmt_t const&, void*, int);
+
+  int const i_;
+
+  void* const p_;
+
+public:
+  template <class C>
+  constexpr explicit emplace_backer(C& c, decltype(i_) i = 0) noexcept :
+    f_(emplace_back_<C>),
+    i_(i),
+    p_(&c)
+  {
+  }
+
+  constexpr auto f() const { return f_; }
+
+  constexpr auto i() const { return i_; }
+
+  constexpr auto p() const { return p_; }
+};
+
+template <typename ...A>
+auto operator|(stmt_t const& stmt, emplace_backer const& e)
+{
+  assert(stmt);
+  return e.f()(stmt, e.p(), e.i());
+}
+
+namespace
+{
+  template <typename C, typename T>
+  bool emplace_back_n_(stmt_t const& stmt, void* p, ::std::size_t const n,
+    int const i)
+  {
+    return emplace_back_n(stmt, *static_cast<C*>(p), T(n), i);
+  }
+}
+
+class emplace_backer_n
+{
+  bool (* const f_)(stmt_t const&, void*, ::std::size_t, int);
+
+  ::std::size_t const n_;
+
+  int const i_;
+
+  void* const p_;
+
+public:
+  template <class C, typename T>
+  constexpr explicit emplace_backer_n(C& c, T const n,
+    decltype(i_) i = 0) noexcept :
+    f_(emplace_back_n_<C, T>),
+    n_(n),
+    i_(i),
+    p_(&c)
+  {
+  }
+
+  constexpr auto f() const { return f_; }
+
+  constexpr auto n() const { return n_; }
+
+  constexpr auto i() const { return i_; }
+
+  constexpr auto p() const { return p_; }
+};
+
+template <typename ...A>
+inline auto operator|(stmt_t const& stmt, emplace_backer_n const& e)
+{
+  assert(stmt);
+  return e.f()(stmt, e.p(), e.n(), e.i());
 }
 
 }
