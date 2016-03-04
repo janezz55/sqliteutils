@@ -21,7 +21,7 @@ using blobpair_t = ::std::pair<void const* const, sqlite3_uint64 const>;
 
 using charpair_t = ::std::pair<char const* const, sqlite3_uint64 const>;
 
-using char16pair_t = ::std::pair<char16_t const* const, int const>;
+using char16pair_t = ::std::pair<char16_t const* const, sqlite3_uint64 const>;
 
 using nullpair_t = ::std::pair<::std::nullptr_t const, sqlite3_uint64 const>;
 
@@ -373,7 +373,7 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return {
     get<char const*>(stmt, i),
-    sqlite3_column_bytes(stmt, i)
+    ::std::string::size_type(sqlite3_column_bytes(stmt, i))
   };
 }
 
@@ -450,21 +450,52 @@ inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args)
 }
 
 //col/////////////////////////////////////////////////////////////////////////
-template <typename ...A>
 class col
 {
   int const i_;
 
-public:
-  constexpr explicit col(decltype(i_) const i) noexcept : i_(i) { }
+  sqlite3_stmt* stmt_;
 
-  constexpr auto i() const { return i_; }
+public:
+  explicit col(decltype(i_) const i) noexcept : i_(i) { }
+
+  void set_stmt(sqlite3_stmt* const s) && noexcept { stmt_ = s; }
+
+  operator int() const && noexcept
+  {
+    return sqlite3_column_int(stmt_, i_);
+  }
+
+  operator sqlite3_int64() const && noexcept
+  {
+    return sqlite3_column_int64(stmt_, i_);
+  }
+
+  operator double() const && noexcept
+  {
+    return sqlite3_column_double(stmt_, i_);
+  }
+
+  operator char const*() const && noexcept
+  {
+    return reinterpret_cast<char const*>(sqlite3_column_text(stmt_, i_));
+  }
+
+  operator ::std::string() const && noexcept
+  {
+    return {
+      reinterpret_cast<char const*>(sqlite3_column_text(stmt_, i_)),
+      ::std::string::size_type(sqlite3_column_bytes(stmt_, i_))
+    };
+  }
+
+  operator void const*() const && noexcept
+  {
+    return sqlite3_column_blob(stmt_, i_);
+  }
 };
 
-template <typename ...A>
-auto operator|(stmt_t const& stmt, col<A...> const& g) noexcept(
-  noexcept(exec(stmt)) || noexcept(col<A...>(stmt, g.i()))
-)
+inline col const& operator|(stmt_t const& stmt, col&& c) noexcept
 {
   assert(stmt);
 
@@ -475,7 +506,9 @@ auto operator|(stmt_t const& stmt, col<A...> const& g) noexcept(
   exec(stmt);
 #endif // NDEBUG
 
-  return get<A...>(stmt, g.i());
+  ::std::move(c).set_stmt(stmt.get());
+
+  return c;
 }
 
 //changes/////////////////////////////////////////////////////////////////////
@@ -726,7 +759,6 @@ inline void emplace(stmt_t const& stmt, C& c, int const i = 0)
   return r;
 }
 
-//emplace_n///////////////////////////////////////////////////////////////////
 template <typename C, typename T>
 inline auto emplace_n(stmt_t const& stmt, C& c, T const n, int const i = 0)
 {
@@ -782,7 +814,6 @@ inline auto emplace_back(stmt_t const& stmt, C& c, int const i = 0)
   return r;
 }
 
-//emplace_back_n//////////////////////////////////////////////////////////////
 template <typename C, typename T>
 inline bool emplace_back_n(stmt_t const& stmt, C& c, T const n,
   int const i = 0)
@@ -795,6 +826,116 @@ inline bool emplace_back_n(stmt_t const& stmt, C& c, T const n,
     {
       case SQLITE_ROW:
         c.emplace_back(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:;
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return r;
+}
+
+//insert//////////////////////////////////////////////////////////////////////
+template <typename C>
+inline void insert(stmt_t const& stmt, C& c, int const i = 0)
+{
+  decltype(exec(stmt)) r(SQLITE_DONE);
+
+  for (;;)
+  {
+    switch (r = exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.insert(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return r;
+}
+
+template <typename C, typename T>
+inline auto insert_n(stmt_t const& stmt, C& c, T const n, int const i = 0)
+{
+  decltype(exec(stmt)) r(SQLITE_DONE);
+
+  for (T j{}; j != n; ++j)
+  {
+    switch (r = exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.insert(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:;
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return r;
+}
+
+//push_back///////////////////////////////////////////////////////////////////
+template <typename C>
+inline void push_back(stmt_t const& stmt, C& c, int const i = 0)
+{
+  decltype(exec(stmt)) r(SQLITE_DONE);
+
+  for (;;)
+  {
+    switch (r = exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.push_back(get<typename C::value_type>(stmt, i));
+
+        continue;
+
+      case SQLITE_DONE:
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return r;
+}
+
+template <typename C, typename T>
+inline auto push_back_n(stmt_t const& stmt, C& c, T const n, int const i = 0)
+{
+  decltype(exec(stmt)) r(SQLITE_DONE);
+
+  for (T j{}; j != n; ++j)
+  {
+    switch (r = exec(stmt))
+    {
+      case SQLITE_ROW:
+        c.push_back(get<typename C::value_type>(stmt, i));
 
         continue;
 
