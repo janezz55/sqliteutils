@@ -25,7 +25,7 @@ using char16pair_t = ::std::pair<char16_t const* const, sqlite3_uint64 const>;
 
 using nullpair_t = ::std::pair<::std::nullptr_t const, sqlite3_uint64 const>;
 
-namespace detail
+namespace
 {
 
 struct swallow
@@ -35,6 +35,11 @@ struct swallow
   {
   }
 };
+
+}
+
+namespace detail
+{
 
 struct deleter
 {
@@ -412,6 +417,62 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
     get<typename T::second_type>(stmt, i + 1)
   };
 }
+template <typename>
+struct is_std_tuple : ::std::false_type { };
+
+template <class ...A>
+struct is_std_tuple<::std::tuple<A...> > : ::std::true_type { };
+
+namespace
+{
+
+template <typename ...A, ::std::size_t ...I>
+inline ::std::tuple<A...> set_tuple(stmt_t const& stmt,
+  int const i, ::std::tuple<A...>& t,
+  ::std::index_sequence<I...> const) noexcept(
+    noexcept(swallow{(::std::get<I>(t) = get<A>(t, i + I), 0)...})
+  )
+{
+  swallow{
+    (::std::get<I>(t) = get<A>(t, i + I), 0)...
+  };
+}
+
+}
+
+template <typename T>
+inline typename ::std::enable_if<
+  is_std_tuple<T>{},
+  T
+>::type
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
+  noexcept(
+    set_tuple<T>(stmt,
+      i,
+      ::std::declval<T>(),
+      ::std::make_index_sequence<::std::tuple_size<T>{}>()
+    )
+  )
+)
+{
+  T t;
+
+  set_tuple(stmt, i, t, ::std::make_index_sequence<::std::tuple_size<T>{}>());
+
+  return t;
+}
+
+template <typename ...A,
+  typename = typename ::std::enable_if<bool(sizeof...(A) > 1)>::type
+>
+::std::tuple<A...> get(sqlite3_stmt* const stmt, int i = 0) noexcept(
+  noexcept(
+    ::std::tuple<A...>{get<A>(stmt, i++)...}
+  )
+)
+{
+  return {get<A>(stmt, i++)...};
+}
 
 template <typename T>
 inline auto get(stmt_t const& stmt, int const i = 0) noexcept(
@@ -596,22 +657,58 @@ inline auto size(stmt_t const& stmt, int const i = 0) noexcept(
 namespace
 {
 
+template <typename T>
+constexpr inline typename ::std::enable_if<
+  !is_std_pair<T>{} && !is_std_tuple<T>{},
+  int
+>::type
+count_types()
+{
+  return 1;
+}
+
+template <typename T>
+constexpr inline typename ::std::enable_if<
+  is_std_pair<T>{},
+  int
+>::type
+count_types()
+{
+  return 2;
+}
+
+template <typename T>
+constexpr inline typename ::std::enable_if<
+  is_std_tuple<T>{},
+  int
+>::type
+count_types()
+{
+  return ::std::tuple_size<T>{};
+}
+
 template <typename ...A, typename F, ::std::size_t ...Is>
-inline auto foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
+inline auto foreach_row_apply(stmt_t const& stmt, F&& f, int i,
   ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
 
-  for (;;)
+  constexpr int const type_counts[]{0,
+    count_types<::std::remove_const_t<::std::remove_reference_t<A> > >()...
+  };
+
+  auto const tmp(i);
+
+  for (;; i = tmp)
   {
     switch (r = exec(stmt))
     {
       case SQLITE_ROW:
         if (f(
             get<::std::remove_const_t<::std::remove_reference_t<A> > >(
-              stmt, i + Is
+              stmt, i += type_counts[Is]
             )...
           )
         )
