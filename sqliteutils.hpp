@@ -499,7 +499,7 @@ public:
   }
 };
 
-inline col const& operator|(stmt_t const& stmt, col&& c) noexcept
+inline decltype(auto) operator|(stmt_t const& stmt, col&& c) noexcept
 {
   assert(stmt);
 
