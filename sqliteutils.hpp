@@ -499,7 +499,9 @@ public:
   }
 };
 
-inline col const& operator|(stmt_t const& stmt, col&& c) noexcept
+inline col const& operator|(stmt_t const& stmt, col&& c) noexcept(
+  noexcept(exec(stmt))
+)
 {
   assert(stmt);
 
