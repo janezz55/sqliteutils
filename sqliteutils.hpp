@@ -597,14 +597,16 @@ namespace
 {
 
 template <typename ...A, typename F, ::std::size_t ...Is>
-inline void foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
+inline auto foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
   ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
 {
+  decltype(exec(stmt)) r(SQLITE_DONE);
+
   for (;;)
   {
-    switch (exec(stmt))
+    switch (r = exec(stmt))
     {
       case SQLITE_ROW:
         if (f(
@@ -630,10 +632,12 @@ inline void foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
 
     break;
   }
+
+  return r;
 }
 
 template <typename F, typename R, typename ...A>
-inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
+inline auto foreach_row_fwd(stmt_t const& stmt, F&& f,
   int const i, R (F::*)(A...)) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
@@ -644,7 +648,7 @@ inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
     )
   )
 {
-  foreach_row_apply<A...>(stmt,
+  return foreach_row_apply<A...>(stmt,
     ::std::forward<F>(f),
     i,
     ::std::make_index_sequence<sizeof...(A)>()
@@ -652,7 +656,7 @@ inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
 }
 
 template <typename F, typename R, typename ...A>
-inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
+inline auto foreach_row_fwd(stmt_t const& stmt, F&& f,
   int const i, R (F::*)(A...) const) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
@@ -663,7 +667,7 @@ inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
     )
   )
 {
-  foreach_row_apply<A...>(stmt,
+  return foreach_row_apply<A...>(stmt,
     ::std::forward<F>(f),
     i,
     ::std::make_index_sequence<sizeof...(A)>()
@@ -673,17 +677,17 @@ inline void foreach_row_fwd(stmt_t const& stmt, F&& f,
 }
 
 template <typename F>
-inline void foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
+inline auto foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
   noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator()))
 )
 {
-  foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator());
+  return foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator());
 }
 
 template <typename ...A, typename F,
   typename = typename ::std::enable_if<bool(sizeof...(A))>::type
 >
-inline void foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
+inline auto foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
   noexcept(
     foreach_row_apply<A...>(stmt,
       ::std::forward<F>(f),
@@ -693,7 +697,7 @@ inline void foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
   )
 )
 {
-  foreach_row_apply<A...>(stmt,
+  return foreach_row_apply<A...>(stmt,
     ::std::forward<F>(f),
     i,
     ::std::make_index_sequence<sizeof...(A)>()
@@ -701,8 +705,10 @@ inline void foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
 }
 
 template <typename F>
-void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
+auto foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 {
+  decltype(exec(stmt)) r(SQLITE_DONE);
+
   for (;;)
   {
     switch (exec(stmt))
@@ -726,6 +732,8 @@ void foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 
     break;
   }
+
+  return r;
 }
 
 //emplace/////////////////////////////////////////////////////////////////////
