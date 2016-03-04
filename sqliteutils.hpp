@@ -499,18 +499,9 @@ public:
   }
 };
 
-inline col const& operator|(stmt_t const& stmt, col&& c) noexcept(
-  noexcept(exec(stmt))
-)
+inline col const& operator|(stmt_t const& stmt, col&& c) noexcept
 {
   assert(stmt);
-
-#ifndef NDEBUG
-  auto const r(exec(stmt));
-  assert(SQLITE_ROW == r);
-#else
-  exec(stmt);
-#endif // NDEBUG
 
   ::std::move(c).set_stmt(stmt.get());
 
