@@ -459,6 +459,10 @@ class col
 public:
   explicit col(decltype(i_) const i) noexcept : i_(i) { }
 
+  col(col const&) = delete;
+
+  col& operator=(col const&) = delete;
+
   void set_stmt(sqlite3_stmt* const s) && noexcept { stmt_ = s; }
 
   operator int() const && noexcept
