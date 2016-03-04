@@ -693,13 +693,13 @@ inline auto foreach_row_apply(stmt_t const& stmt, F&& f, int i,
     noexcept(f(::std::declval<A>()...))
   )
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
-
   constexpr int const type_counts[]{0,
     count_types<::std::remove_const_t<::std::remove_reference_t<A> > >()...
   };
 
   auto const tmp(i);
+
+  decltype(exec(stmt)) r(SQLITE_DONE);
 
   for (;; i = tmp)
   {
