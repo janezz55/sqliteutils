@@ -678,7 +678,7 @@ inline auto open_shared(char const* const filename, int const flags,
 #endif //NDEBUG
 
   return shared_db_t(db,
-    [](sqlite3* const db) noexcept
+    [](auto const db) noexcept
     {
       detail::sqlite3_deleter()(db);
     }
