@@ -292,14 +292,14 @@ template <int I = 1, typename A, typename ...B>
 inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   noexcept(
     exec<I>(
-      make_stmt(db, ::std::forward<A>(a)),
+      make_unique(db, ::std::forward<A>(a)),
       ::std::forward<B>(args)...
     )
   )
 )
 {
   return exec<I>(
-    make_stmt(db, ::std::forward<A>(a)),
+    make_unique(db, ::std::forward<A>(a)),
     ::std::forward<B>(args)...
   );
 }
@@ -516,7 +516,7 @@ inline auto rexecget(S&& stmt, int const i = 0, A&& ...args)
 template <typename T, typename D, typename A, typename ...B>
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args)
 {
-  return execget<T>(make_stmt(::std::forward<D>(db), ::std::forward<A>(a)),
+  return execget<T>(make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
     i,
     ::std::forward<B>(args)...
   );
