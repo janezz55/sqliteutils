@@ -165,6 +165,8 @@ using db_shared_t = ::std::shared_ptr<sqlite3>;
 
 using db_unique_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
 
+using stmt_shared_t = ::std::shared_ptr<sqlite3_stmt>;
+
 using stmt_unique_t = ::std::unique_ptr<sqlite3_stmt,
   detail::sqlite3_stmt_deleter
 >;
@@ -220,19 +222,18 @@ inline auto make_unique(sqlite3* const db, ::std::string const& a) noexcept
 }
 
 // forwarders
-template <typename T, typename ...A>
-inline auto make_unique(::std::shared_ptr<T> const& db, A&& ...args) noexcept(
+template <typename ...A>
+inline auto make_unique(db_shared_t const& db, A&& ...args) noexcept(
   noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
 )
 {
   return make_unique(db.get(), ::std::forward<A>(args)...);
 }
 
-template <typename T, typename D, typename ...A>
-inline auto make_unique(::std::unique_ptr<T, D> const& db,
-  A&& ...args) noexcept(
-    noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
-  )
+template <typename ...A>
+inline auto make_unique(db_unique_t const& db, A&& ...args) noexcept(
+  noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
+)
 {
   return make_unique(db.get(), ::std::forward<A>(args)...);
 }
