@@ -161,9 +161,9 @@ void set(sqlite3_stmt* const stmt, ::std::index_sequence<Is...> const,
 
 }
 
-using db_shared_t = ::std::shared_ptr<sqlite3>;
+using shared_db_t = ::std::shared_ptr<sqlite3>;
 
-using db_unique_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
+using unique_db_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
 
 using shared_stmt_t = ::std::shared_ptr<sqlite3_stmt>;
 
