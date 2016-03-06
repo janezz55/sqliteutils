@@ -223,7 +223,7 @@ inline auto make_unique(sqlite3* const db, ::std::string const& a) noexcept
 
 // forwarders
 template <typename ...A>
-inline auto make_unique(db_shared_t const& db, A&& ...args) noexcept(
+inline auto make_unique(shared_db_t const& db, A&& ...args) noexcept(
   noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
 )
 {
@@ -231,7 +231,7 @@ inline auto make_unique(db_shared_t const& db, A&& ...args) noexcept(
 }
 
 template <typename ...A>
-inline auto make_unique(db_unique_t const& db, A&& ...args) noexcept(
+inline auto make_unique(unique_db_t const& db, A&& ...args) noexcept(
   noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
 )
 {
