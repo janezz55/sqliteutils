@@ -14,7 +14,7 @@ include <iostream>
 
 int main(int, char*[])
 {
-  auto db(::sqlite::open("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
+  auto const db(::sqlite::open("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
   ::sqlite::exec(db,
     "CREATE TABLE COMPANY("
