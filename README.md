@@ -4,6 +4,8 @@ A lightweight C++14 wrapper library for sqlite3. The goals of the library are:
 - transparency,
 - performance.
 
+Please create issues to request new features.
+
 ## Example
 ```c++
 #include <iostream>
