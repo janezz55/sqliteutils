@@ -1,10 +1,10 @@
-# sqliteutils
+## Description
 A lightweight C++14 wrapper library for sqlite3. The goals of the library are:
 - code verbosity,
 - transparency,
 - performance.
 
-# Example
+## Example
 ```c++
 #include <iostream>
 
