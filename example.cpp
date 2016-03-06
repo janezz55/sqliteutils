@@ -29,7 +29,7 @@ int main(int, char*[])
     "VALUES(4, 'Mark', 25, 'Rich-Mond ', 65000.00)"
   );
 
-  auto const stmt(::sqlite::make_stmt(db, "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"));
+  auto const stmt(::sqlite::make_unique(db, "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"));
 
   ::sqlite::foreach_row(stmt,
     [](::std::string const& name, unsigned const age,
