@@ -640,8 +640,8 @@ inline auto column_name16(unique_stmt_t const& stmt,
   return column_name16(stmt.get(), i);
 }
 
-//open////////////////////////////////////////////////////////////////////////
-inline auto open(char const* const filename, int const flags,
+//open_unique/////////////////////////////////////////////////////////////////
+inline auto open_unique(char const* const filename, int const flags,
   char const* const zvfs = nullptr) noexcept
 {
   sqlite3* db;
@@ -657,11 +657,11 @@ inline auto open(char const* const filename, int const flags,
 }
 
 template <typename ...A>
-inline auto open(::std::string const& filename, A&& ...args) noexcept(
-  noexcept(open(filename.c_str(), ::std::forward<A>(args)...))
+inline auto open_unique(::std::string const& filename, A&& ...args) noexcept(
+  noexcept(open_unique(filename.c_str(), ::std::forward<A>(args)...))
 )
 {
-  return open(filename.c_str(), ::std::forward<A>(args)...);
+  return open_unique(filename.c_str(), ::std::forward<A>(args)...);
 }
 
 //open_shared/////////////////////////////////////////////////////////////////

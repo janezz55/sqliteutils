@@ -18,7 +18,7 @@ Please create issues to request new features.
 
 int main(int, char*[])
 {
-  auto const db(::sqlite::open("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
+  auto const db(::sqlite::open_unique("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
   ::sqlite::exec(db,
     "CREATE TABLE COMPANY("
