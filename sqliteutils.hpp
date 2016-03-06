@@ -664,6 +664,35 @@ inline auto open(::std::string const& filename, A&& ...args) noexcept(
   return open(filename.c_str(), ::std::forward<A>(args)...);
 }
 
+//open_shared/////////////////////////////////////////////////////////////////
+inline auto open_shared(char const* const filename, int const flags,
+  char const* const zvfs = nullptr) noexcept
+{
+  sqlite3* db;
+
+#ifndef NDEBUG
+  sqlite3_open_v2(filename, &db, flags, zvfs);
+#else
+  auto const r(sqlite3_open_v2(filename, &db, flags, zvfs));
+  assert(SQLITE_OK == r);
+#endif //NDEBUG
+
+  return shared_db_t(db,
+    [](sqlite3* const db) noexcept
+    {
+      sqlite3_deleter()(db);
+    }
+  );
+}
+
+template <typename ...A>
+inline auto open_shared(::std::string const& filename, A&& ...args) noexcept(
+  noexcept(open_shared(filename.c_str(), ::std::forward<A>(args)...))
+)
+{
+  return open_shared(filename.c_str(), ::std::forward<A>(args)...);
+}
+
 //reset///////////////////////////////////////////////////////////////////////
 inline auto reset(sqlite3_stmt* const stmt) noexcept
 {
