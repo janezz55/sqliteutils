@@ -2,7 +2,7 @@
 # define SQLITEUTILS_HPP
 # pragma once
 
-#include "sqlite3/sqlite3.h"
+#include "sqlite3.h"
 
 #include <cassert>
 
@@ -41,7 +41,15 @@ struct swallow
 namespace detail
 {
 
-struct deleter
+struct sqlite3_deleter
+{
+  void operator()(sqlite3* const p) const noexcept
+  {
+    sqlite3_close_v2(p);
+  }
+};
+
+struct sqlite3_stmt_deleter
 {
   void operator()(sqlite3_stmt* const p) const noexcept
   {
@@ -153,7 +161,9 @@ void set(sqlite3_stmt* const stmt, ::std::index_sequence<Is...> const,
 
 }
 
-using stmt_t = ::std::unique_ptr<sqlite3_stmt, detail::deleter>;
+using db_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
+
+using stmt_t = ::std::unique_ptr<sqlite3_stmt, detail::sqlite3_stmt_deleter>;
 
 //set/////////////////////////////////////////////////////////////////////////
 template <int I = 1, typename ...A>
@@ -222,7 +232,7 @@ inline auto make_stmt(::std::unique_ptr<T, D> const& db,
   return make_stmt(db.get(), ::std::forward<A>(args)...);
 }
 
-//exec ///////////////////////////////////////////////////////////////////////
+//exec////////////////////////////////////////////////////////////////////////
 template <int I = 1>
 inline auto exec(sqlite3_stmt* const stmt) noexcept
 {
@@ -426,16 +436,11 @@ struct is_std_tuple<::std::tuple<A...> > : ::std::true_type { };
 namespace
 {
 
-template <typename ...A, ::std::size_t ...I>
-inline ::std::tuple<A...> set_tuple(stmt_t const& stmt,
-  int const i, ::std::tuple<A...>& t,
-  ::std::index_sequence<I...> const) noexcept(
-    noexcept(swallow{(::std::get<I>(t) = get<A>(t, i + I), 0)...})
-  )
+template <typename T, ::std::size_t ...Is>
+T make_tuple(sqlite3_stmt* const stmt, int const i,
+  ::std::index_sequence<Is...> const) noexcept
 {
-  swallow{
-    (::std::get<I>(t) = get<A>(t, i + I), 0)...
-  };
+  return T(get<typename ::std::tuple_element<Is, T>::type>(stmt, i + Is)...);
 }
 
 }
@@ -447,19 +452,13 @@ inline typename ::std::enable_if<
 >::type
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
   noexcept(
-    set_tuple<T>(stmt,
-      i,
-      ::std::declval<T>(),
-      ::std::make_index_sequence<::std::tuple_size<T>{}>()
-    )
+    make_tuple<T>(stmt, i, ::std::make_index_sequence<::std::tuple_size<T>{}>())
   )
 )
 {
-  T t;
-
-  set_tuple(stmt, i, t, ::std::make_index_sequence<::std::tuple_size<T>{}>());
-
-  return t;
+  return make_tuple<T>(stmt, i,
+    ::std::make_index_sequence<::std::tuple_size<T>{}>()
+  );
 }
 
 template <typename ...A,
@@ -471,7 +470,7 @@ template <typename ...A,
   )
 )
 {
-  return {get<A>(stmt, i++)...};
+  return ::std::tuple<A...>(get<A>(stmt, i++)...);
 }
 
 template <typename T>
@@ -627,6 +626,30 @@ inline auto column_name16(stmt_t const& stmt, int const i = 0) noexcept(
   return column_name16(stmt.get(), i);
 }
 
+//open////////////////////////////////////////////////////////////////////////
+inline auto open(char const* const filename, int const flags,
+  char const* const zvfs = nullptr) noexcept
+{
+  sqlite3* db;
+
+#ifndef NDEBUG
+  sqlite3_open_v2(filename, &db, flags, zvfs);
+#else
+  auto const r(sqlite3_open_v2(filename, &db, flags, zvfs));
+  assert(SQLITE_OK == r);
+#endif //NDEBUG
+
+  return db_t(db);
+}
+
+template <typename ...A>
+inline auto open(::std::string const& filename, A&& ...args) noexcept(
+  noexcept(open(filename.c_str(), ::std::forward<A>(args)...))
+)
+{
+  return open(filename.c_str(), ::std::forward<A>(args)...);
+}
+
 //reset///////////////////////////////////////////////////////////////////////
 inline auto reset(sqlite3_stmt* const stmt) noexcept
 {
@@ -653,62 +676,66 @@ inline auto size(stmt_t const& stmt, int const i = 0) noexcept(
   return size(stmt.get(), i);
 }
 
+template <typename ...A>
+inline auto bytes(A&& ...args)
+{
+  return size(::std::forward<A>(args)...);
+}
+
 //for_each////////////////////////////////////////////////////////////////////
 namespace
 {
 
-template <typename T>
-constexpr inline typename ::std::enable_if<
-  !is_std_pair<T>{} && !is_std_tuple<T>{},
-  int
->::type
-count_types()
+template <typename A, typename ...B>
+struct count_types :
+  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
 {
-  return 1;
-}
+};
 
-template <typename T>
-constexpr inline typename ::std::enable_if<
-  is_std_pair<T>{},
-  int
->::type
-count_types()
+template <typename A>
+struct count_types<A> : ::std::integral_constant<int, 1>
 {
-  return 2;
-}
+};
 
-template <typename T>
-constexpr inline typename ::std::enable_if<
-  is_std_tuple<T>{},
-  int
->::type
-count_types()
+template <typename A, typename B>
+struct count_types<::std::pair<A, B> > :
+  ::std::integral_constant<int, count_types<A>{} + count_types<B>{}>
 {
-  return ::std::tuple_size<T>{};
-}
+};
+
+template <typename A, typename ...B>
+struct count_types<::std::tuple<A, B...> > :
+  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
+{
+};
+
+template <::std::size_t I, int S, typename A, typename ...B>
+struct count_types_n : count_types_n<I - 1, S + count_types<A>{}, B...>
+{
+};
+
+template <int S, typename A, typename ...B>
+struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
+{
+};
 
 template <typename ...A, typename F, ::std::size_t ...Is>
-inline auto foreach_row_apply(stmt_t const& stmt, F&& f, int i,
+inline auto foreach_row_apply(stmt_t const& stmt, F&& f, int const i,
   ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
 {
-  constexpr int const type_counts[]{0,
-    count_types<::std::remove_const_t<::std::remove_reference_t<A> > >()...
-  };
+  decltype(exec(stmt)) r;
 
-  auto const tmp(i);
-
-  decltype(exec(stmt)) r(SQLITE_DONE);
-
-  for (;; i = tmp)
+  for (;;)
   {
     switch (r = exec(stmt))
     {
       case SQLITE_ROW:
         if (f(
             get<::std::remove_const_t<::std::remove_reference_t<A> > >(
-              stmt, i += type_counts[Is]
+              stmt,
+              i + count_types_n<Is, 0, A...>{}
             )...
           )
         )
@@ -804,11 +831,11 @@ inline auto foreach_row(stmt_t const& stmt, F&& f, int const i = 0) noexcept(
 template <typename F>
 auto foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
+  decltype(exec(stmt)) r;
 
   for (;;)
   {
-    switch (exec(stmt))
+    switch (r = exec(stmt))
     {
       case SQLITE_ROW:
         if (f())
@@ -837,7 +864,7 @@ auto foreach_stmt(stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 template <typename C>
 inline void emplace(stmt_t const& stmt, C& c, int const i = 0)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
+  decltype(exec(stmt)) r;
 
   for (;;)
   {
@@ -892,7 +919,7 @@ inline auto emplace_n(stmt_t const& stmt, C& c, T const n, int const i = 0)
 template <typename C>
 inline auto emplace_back(stmt_t const& stmt, C& c, int const i = 0)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
+  decltype(exec(stmt)) r;
 
   for (;;)
   {
@@ -917,7 +944,7 @@ inline auto emplace_back(stmt_t const& stmt, C& c, int const i = 0)
 }
 
 template <typename C, typename T>
-inline bool emplace_back_n(stmt_t const& stmt, C& c, T const n,
+inline auto emplace_back_n(stmt_t const& stmt, C& c, T const n,
   int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
@@ -948,7 +975,7 @@ inline bool emplace_back_n(stmt_t const& stmt, C& c, T const n,
 template <typename C>
 inline void insert(stmt_t const& stmt, C& c, int const i = 0)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
+  decltype(exec(stmt)) r;
 
   for (;;)
   {
@@ -1003,7 +1030,7 @@ inline auto insert_n(stmt_t const& stmt, C& c, T const n, int const i = 0)
 template <typename C>
 inline void push_back(stmt_t const& stmt, C& c, int const i = 0)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
+  decltype(exec(stmt)) r;
 
   for (;;)
   {
