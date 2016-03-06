@@ -680,7 +680,7 @@ inline auto open_shared(char const* const filename, int const flags,
   return shared_db_t(db,
     [](sqlite3* const db) noexcept
     {
-      sqlite3_deleter()(db);
+      detail::sqlite3_deleter()(db);
     }
   );
 }
