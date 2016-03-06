@@ -165,9 +165,9 @@ using db_shared_t = ::std::shared_ptr<sqlite3>;
 
 using db_unique_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
 
-using stmt_shared_t = ::std::shared_ptr<sqlite3_stmt>;
+using shared_stmt_t = ::std::shared_ptr<sqlite3_stmt>;
 
-using stmt_unique_t = ::std::unique_ptr<sqlite3_stmt,
+using unique_stmt_t = ::std::unique_ptr<sqlite3_stmt,
   detail::sqlite3_stmt_deleter
 >;
 
@@ -187,7 +187,7 @@ template <typename T,
     std::is_same<T, char>{}
   >::type
 >
-inline stmt_unique_t make_unique(sqlite3* const db, T const* const& a,
+inline unique_stmt_t make_unique(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
 {
   sqlite3_stmt* stmt;
@@ -198,11 +198,11 @@ inline stmt_unique_t make_unique(sqlite3* const db, T const* const& a,
 #else
   sqlite3_prepare_v2(db, a, size, &stmt, nullptr);
 #endif // NDEBUG
-  return stmt_unique_t(stmt);
+  return unique_stmt_t(stmt);
 }
 
 template <::std::size_t N>
-inline stmt_unique_t make_unique(sqlite3* const db,
+inline unique_stmt_t make_unique(sqlite3* const db,
   char const (&a)[N]) noexcept
 {
   sqlite3_stmt* stmt;
@@ -213,7 +213,7 @@ inline stmt_unique_t make_unique(sqlite3* const db,
 #else
   sqlite3_prepare_v2(db, a, N, &stmt, nullptr);
 #endif // NDEBUG
-  return stmt_unique_t(stmt);
+  return unique_stmt_t(stmt);
 }
 
 inline auto make_unique(sqlite3* const db, ::std::string const& a) noexcept
@@ -273,7 +273,7 @@ inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
 
 // forwarders
 template <int I = 1, typename ...A>
-inline auto exec(stmt_unique_t const& stmt, A&& ...args) noexcept(
+inline auto exec(unique_stmt_t const& stmt, A&& ...args) noexcept(
   noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
 )
 {
@@ -281,7 +281,7 @@ inline auto exec(stmt_unique_t const& stmt, A&& ...args) noexcept(
 }
 
 template <int I = 1, typename ...A>
-inline auto rexec(stmt_unique_t const& stmt, A&& ...args) noexcept(
+inline auto rexec(unique_stmt_t const& stmt, A&& ...args) noexcept(
   noexcept(rexec(stmt.get(), ::std::forward<A>(args)...))
 )
 {
@@ -487,7 +487,7 @@ template <typename ...A,
 }
 
 template <typename T>
-inline auto get(stmt_unique_t const& stmt, int const i = 0) noexcept(
+inline auto get(unique_stmt_t const& stmt, int const i = 0) noexcept(
   noexcept(get<T>(stmt.get(), i))
 )
 {
@@ -572,7 +572,7 @@ public:
   }
 };
 
-inline decltype(auto) operator|(stmt_unique_t const& stmt, col&& c) noexcept
+inline decltype(auto) operator|(unique_stmt_t const& stmt, col&& c) noexcept
 {
   assert(stmt);
 
@@ -593,7 +593,7 @@ inline auto clear_bindings(sqlite3_stmt* const stmt) noexcept
   return sqlite3_clear_bindings(stmt);
 }
 
-inline auto clear_bindings(stmt_unique_t const& stmt) noexcept(
+inline auto clear_bindings(unique_stmt_t const& stmt) noexcept(
   noexcept(clear_bindings(stmt.get()))
 )
 {
@@ -606,7 +606,7 @@ inline auto column_count(sqlite3_stmt* const stmt) noexcept
   return sqlite3_column_count(stmt);
 }
 
-inline auto column_count(stmt_unique_t const& stmt) noexcept(
+inline auto column_count(unique_stmt_t const& stmt) noexcept(
   noexcept(column_count(stmt.get()))
 )
 {
@@ -619,7 +619,7 @@ inline auto column_name(sqlite3_stmt* const stmt, int const i = 0) noexcept
   return sqlite3_column_name(stmt, i);
 }
 
-inline auto column_name(stmt_unique_t const& stmt, int const i = 0) noexcept(
+inline auto column_name(unique_stmt_t const& stmt, int const i = 0) noexcept(
   noexcept(column_name(stmt.get(), i))
 )
 {
@@ -632,7 +632,7 @@ inline auto column_name16(sqlite3_stmt* const stmt, int const i = 0) noexcept
   return static_cast<char16_t const*>(sqlite3_column_name16(stmt, i));
 }
 
-inline auto column_name16(stmt_unique_t const& stmt,
+inline auto column_name16(unique_stmt_t const& stmt,
   int const i = 0) noexcept(
     noexcept(column_name16(stmt.get(), i))
   )
@@ -670,7 +670,7 @@ inline auto reset(sqlite3_stmt* const stmt) noexcept
   return sqlite3_reset(stmt);
 }
 
-inline auto reset(stmt_unique_t const& stmt) noexcept(
+inline auto reset(unique_stmt_t const& stmt) noexcept(
   noexcept(reset(stmt.get()))
 )
 {
@@ -683,7 +683,7 @@ inline auto size(sqlite3_stmt* const stmt, int const i = 0) noexcept
   return sqlite3_column_bytes(stmt, i);
 }
 
-inline auto size(stmt_unique_t const& stmt, int const i = 0) noexcept(
+inline auto size(unique_stmt_t const& stmt, int const i = 0) noexcept(
   noexcept(size(stmt.get(), i))
 )
 {
@@ -734,7 +734,7 @@ struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
 };
 
 template <typename ...A, typename F, ::std::size_t ...Is>
-inline auto foreach_row_apply(stmt_unique_t const& stmt, F&& f, int const i,
+inline auto foreach_row_apply(unique_stmt_t const& stmt, F&& f, int const i,
   ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
@@ -775,7 +775,7 @@ inline auto foreach_row_apply(stmt_unique_t const& stmt, F&& f, int const i,
 }
 
 template <typename F, typename R, typename ...A>
-inline auto foreach_row_fwd(stmt_unique_t const& stmt, F&& f,
+inline auto foreach_row_fwd(unique_stmt_t const& stmt, F&& f,
   int const i, R (F::*)(A...)) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
@@ -794,7 +794,7 @@ inline auto foreach_row_fwd(stmt_unique_t const& stmt, F&& f,
 }
 
 template <typename F, typename R, typename ...A>
-inline auto foreach_row_fwd(stmt_unique_t const& stmt, F&& f,
+inline auto foreach_row_fwd(unique_stmt_t const& stmt, F&& f,
   int const i, R (F::*)(A...) const) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
@@ -815,7 +815,7 @@ inline auto foreach_row_fwd(stmt_unique_t const& stmt, F&& f,
 }
 
 template <typename F>
-inline auto foreach_row(stmt_unique_t const& stmt, F&& f,
+inline auto foreach_row(unique_stmt_t const& stmt, F&& f,
   int const i = 0) noexcept(
     noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator()))
   )
@@ -826,7 +826,7 @@ inline auto foreach_row(stmt_unique_t const& stmt, F&& f,
 template <typename ...A, typename F,
   typename = typename ::std::enable_if<bool(sizeof...(A))>::type
 >
-inline auto foreach_row(stmt_unique_t const& stmt, F&& f,
+inline auto foreach_row(unique_stmt_t const& stmt, F&& f,
   int const i = 0) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
@@ -845,7 +845,7 @@ inline auto foreach_row(stmt_unique_t const& stmt, F&& f,
 }
 
 template <typename F>
-auto foreach_stmt(stmt_unique_t const& stmt, F&& f) noexcept(noexcept(f()))
+auto foreach_stmt(unique_stmt_t const& stmt, F&& f) noexcept(noexcept(f()))
 {
   decltype(exec(stmt)) r;
 
@@ -878,7 +878,7 @@ auto foreach_stmt(stmt_unique_t const& stmt, F&& f) noexcept(noexcept(f()))
 
 //emplace/////////////////////////////////////////////////////////////////////
 template <typename C>
-inline void emplace(stmt_unique_t const& stmt, C& c, int const i = 0)
+inline void emplace(unique_stmt_t const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
 
@@ -905,7 +905,7 @@ inline void emplace(stmt_unique_t const& stmt, C& c, int const i = 0)
 }
 
 template <typename C, typename T>
-inline auto emplace_n(stmt_unique_t const& stmt, C& c, T const n,
+inline auto emplace_n(unique_stmt_t const& stmt, C& c, T const n,
   int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
@@ -934,7 +934,7 @@ inline auto emplace_n(stmt_unique_t const& stmt, C& c, T const n,
 
 //emplace_back////////////////////////////////////////////////////////////////
 template <typename C>
-inline auto emplace_back(stmt_unique_t const& stmt, C& c, int const i = 0)
+inline auto emplace_back(unique_stmt_t const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
 
@@ -961,7 +961,7 @@ inline auto emplace_back(stmt_unique_t const& stmt, C& c, int const i = 0)
 }
 
 template <typename C, typename T>
-inline auto emplace_back_n(stmt_unique_t const& stmt, C& c, T const n,
+inline auto emplace_back_n(unique_stmt_t const& stmt, C& c, T const n,
   int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
@@ -990,7 +990,7 @@ inline auto emplace_back_n(stmt_unique_t const& stmt, C& c, T const n,
 
 //insert//////////////////////////////////////////////////////////////////////
 template <typename C>
-inline void insert(stmt_unique_t const& stmt, C& c, int const i = 0)
+inline void insert(unique_stmt_t const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
 
@@ -1017,7 +1017,7 @@ inline void insert(stmt_unique_t const& stmt, C& c, int const i = 0)
 }
 
 template <typename C, typename T>
-inline auto insert_n(stmt_unique_t const& stmt, C& c, T const n,
+inline auto insert_n(unique_stmt_t const& stmt, C& c, T const n,
   int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
@@ -1046,7 +1046,7 @@ inline auto insert_n(stmt_unique_t const& stmt, C& c, T const n,
 
 //push_back///////////////////////////////////////////////////////////////////
 template <typename C>
-inline void push_back(stmt_unique_t const& stmt, C& c, int const i = 0)
+inline void push_back(unique_stmt_t const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
 
@@ -1073,7 +1073,7 @@ inline void push_back(stmt_unique_t const& stmt, C& c, int const i = 0)
 }
 
 template <typename C, typename T>
-inline auto push_back_n(stmt_unique_t const& stmt, C& c, T const n,
+inline auto push_back_n(unique_stmt_t const& stmt, C& c, T const n,
   int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
