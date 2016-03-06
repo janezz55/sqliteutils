@@ -653,7 +653,7 @@ inline auto open(char const* const filename, int const flags,
   assert(SQLITE_OK == r);
 #endif //NDEBUG
 
-  return db_unique_t(db);
+  return unique_db_t(db);
 }
 
 template <typename ...A>
