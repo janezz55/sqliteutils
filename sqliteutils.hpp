@@ -94,8 +94,12 @@ inline void set(sqlite3_stmt* const stmt, blobpair_t const& v) noexcept
   sqlite3_bind_blob64(stmt, I, v.first, v.second, SQLITE_STATIC);
 }
 
-template <int I>
-inline void set(sqlite3_stmt* const stmt, double const v) noexcept
+template <int I, typename T>
+inline typename ::std::enable_if<
+  ::std::is_floating_point<T>{},
+  void
+>::type
+inline void set(sqlite3_stmt* const stmt, T const v) noexcept
 {
   sqlite3_bind_double(stmt, I, v);
 }
