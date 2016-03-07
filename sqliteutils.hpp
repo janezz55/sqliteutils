@@ -99,7 +99,7 @@ inline typename ::std::enable_if<
   ::std::is_floating_point<T>{},
   void
 >::type
-inline void set(sqlite3_stmt* const stmt, T const v) noexcept
+set(sqlite3_stmt* const stmt, T const v) noexcept
 {
   sqlite3_bind_double(stmt, I, v);
 }
