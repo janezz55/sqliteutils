@@ -672,9 +672,25 @@ public:
     };
   }
 
+  operator charpair_t() const && noexcept
+  {
+    return {
+      reinterpret_cast<char const*>(sqlite3_column_text(stmt_, i_)),
+      sqlite3_column_bytes(stmt_, i_)
+    };
+  }
+
   operator void const*() const && noexcept
   {
     return sqlite3_column_blob(stmt_, i_);
+  }
+
+  operator blobpair_t() const && noexcept
+  {
+    return {
+      sqlite3_column_blob(stmt_, i_),
+      sqlite3_column_bytes(stmt_, i_)
+    };
   }
 };
 
