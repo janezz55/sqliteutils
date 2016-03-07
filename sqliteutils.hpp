@@ -656,7 +656,7 @@ inline auto column_name16(unique_stmt_t const& stmt,
   return column_name16(stmt.get(), i);
 }
 
-//open_unique/////////////////////////////////////////////////////////////////
+//open_shared/////////////////////////////////////////////////////////////////
 template <typename T>
 inline auto open(char const* const filename, int const flags,
   char const* const zvfs = nullptr) noexcept
@@ -676,23 +676,6 @@ inline auto open(char const* const filename, int const flags,
 }
 
 template <typename ...A>
-inline auto open_unique(char const* const filename, A&& ...args) noexcept(
-  noexcept(open<unique_db_t>(filename, ::std::forward<A>(args)...))
-)
-{
-  return open<unique_db_t>(filename, ::std::forward<A>(args)...);
-}
-
-template <typename ...A>
-inline auto open_unique(::std::string const& filename, A&& ...args) noexcept(
-  noexcept(open_unique(filename.c_str(), ::std::forward<A>(args)...))
-)
-{
-  return open<unique_db_t>(filename.c_str(), ::std::forward<A>(args)...);
-}
-
-//open_shared/////////////////////////////////////////////////////////////////
-template <typename ...A>
 inline auto open_shared(char const* const filename, A&& ...args) noexcept(
   noexcept(open<shared_db_t>(filename, ::std::forward<A>(args)...))
 )
@@ -706,6 +689,23 @@ inline auto open_shared(::std::string const& filename, A&& ...args) noexcept(
 )
 {
   return open<shared_db_t>(filename.c_str(), ::std::forward<A>(args)...);
+}
+
+//open_unique/////////////////////////////////////////////////////////////////
+template <typename ...A>
+inline auto open_unique(char const* const filename, A&& ...args) noexcept(
+  noexcept(open<unique_db_t>(filename, ::std::forward<A>(args)...))
+)
+{
+  return open<unique_db_t>(filename, ::std::forward<A>(args)...);
+}
+
+template <typename ...A>
+inline auto open_unique(::std::string const& filename, A&& ...args) noexcept(
+  noexcept(open_unique(filename.c_str(), ::std::forward<A>(args)...))
+)
+{
+  return open<unique_db_t>(filename.c_str(), ::std::forward<A>(args)...);
 }
 
 //reset///////////////////////////////////////////////////////////////////////
