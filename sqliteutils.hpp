@@ -664,7 +664,7 @@ public:
     return reinterpret_cast<char const*>(sqlite3_column_text(stmt_, i_));
   }
 
-  operator ::std::string() const && noexcept
+  operator ::std::string() const &&
   {
     return {
       reinterpret_cast<char const*>(sqlite3_column_text(stmt_, i_)),
