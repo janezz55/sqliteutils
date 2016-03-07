@@ -542,28 +542,29 @@ inline auto get(unique_stmt_t const& stmt, int const i = 0) noexcept(
 }
 
 //execget/////////////////////////////////////////////////////////////////////
-template <typename T, typename S, typename ...A>
+template <typename T, int I = 1, typename S, typename ...A>
 inline auto execget(S&& stmt, int const i = 0, A&& ...args)
 {
-  auto const r(exec(::std::forward<S>(stmt), ::std::forward<A>(args)...));
+  auto const r(exec<I>(::std::forward<S>(stmt), ::std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
 
   return get<T>(stmt, i);
 }
 
-template <typename T, typename S, typename ...A>
+template <typename T, int I = 1, typename S, typename ...A>
 inline auto rexecget(S&& stmt, int const i = 0, A&& ...args)
 {
-  auto const r(rexec(::std::forward<S>(stmt), ::std::forward<A>(args)...));
+  auto const r(rexec<I>(::std::forward<S>(stmt), ::std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
 
   return get<T>(stmt, i);
 }
 
-template <typename T, typename D, typename A, typename ...B>
+template <typename T, int I = 1, typename D, typename A, typename ...B>
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args)
 {
-  return execget<T>(make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
+  return execget<T, I>(
+    make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
     i,
     ::std::forward<B>(args)...
   );
