@@ -669,7 +669,7 @@ inline auto open(char const* const filename, int const flags,
   }
   else
   {
-    detail::sqlite3_deleter(db);
+    detail::sqlite3_deleter()(db);
 
     return T();
   }
