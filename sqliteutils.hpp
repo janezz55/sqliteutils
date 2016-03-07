@@ -273,6 +273,22 @@ inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
 
 // forwarders
 template <int I = 1, typename ...A>
+inline auto exec(shared_stmt_t const& stmt, A&& ...args) noexcept(
+  noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec<I>(stmt.get(), ::std::forward<A>(args)...);
+}
+
+template <int I = 1, typename ...A>
+inline auto rexec(shared_stmt_t const& stmt, A&& ...args) noexcept(
+  noexcept(rexec(stmt.get(), ::std::forward<A>(args)...))
+)
+{
+  return rexec<I>(stmt.get(), ::std::forward<A>(args)...);
+}
+
+template <int I = 1, typename ...A>
 inline auto exec(unique_stmt_t const& stmt, A&& ...args) noexcept(
   noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
 )
@@ -315,16 +331,16 @@ inline auto exec(sqlite3* const db, ::std::string const& a) noexcept
 }
 
 // forwarders
-template <typename T, typename ...A>
-inline auto exec(::std::shared_ptr<T> const& db, A&& ...args) noexcept(
+template <typename ...A>
+inline auto exec(shared_db_t const& db, A&& ...args) noexcept(
   noexcept(exec(db.get(), ::std::forward<A>(args)...))
 )
 {
   return exec(db.get(), ::std::forward<A>(args)...);
 }
 
-template <typename T, typename D, typename ...A>
-inline auto exec(::std::unique_ptr<T, D> const& db, A&& ...args) noexcept(
+template <typename ...A>
+inline auto exec(unique_db_t const& db, A&& ...args) noexcept(
   noexcept(exec(db.get(), ::std::forward<A>(args)...))
 )
 {
