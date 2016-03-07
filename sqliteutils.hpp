@@ -702,7 +702,7 @@ inline auto open_unique(char const* const filename, A&& ...args) noexcept(
 
 template <typename ...A>
 inline auto open_unique(::std::string const& filename, A&& ...args) noexcept(
-  noexcept(open_unique(filename.c_str(), ::std::forward<A>(args)...))
+  noexcept(open<unique_db_t>(filename.c_str(), ::std::forward<A>(args)...))
 )
 {
   return open<unique_db_t>(filename.c_str(), ::std::forward<A>(args)...);
