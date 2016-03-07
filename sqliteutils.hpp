@@ -766,7 +766,9 @@ inline auto size(unique_stmt_t const& stmt, int const i = 0) noexcept(
 }
 
 template <typename ...A>
-inline auto bytes(A&& ...args)
+inline auto bytes(A&& ...args) noexcept(
+  noexcept(size(::std::forward<A>(args)...))
+)
 {
   return size(::std::forward<A>(args)...);
 }
