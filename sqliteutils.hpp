@@ -657,21 +657,30 @@ inline auto column_name16(unique_stmt_t const& stmt,
 }
 
 //open_unique/////////////////////////////////////////////////////////////////
-inline auto open_unique(char const* const filename, int const flags,
+template <typename T>
+inline auto open(char const* const filename, int const flags,
   char const* const zvfs = nullptr) noexcept
 {
   sqlite3* db;
 
   if (SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs))
   {
-    return unique_db_t(db);
+    return T(db);
   }
   else
   {
     detail::sqlite3_deleter(db);
 
-    return unique_db_t();
+    return T();
   }
+}
+
+template <typename ...A>
+inline auto open_unique(char const* const filename, A&& ...args) noexcept(
+  noexcept(open<unique_db_t>(filename, ::std::forward<A>(args)...))
+)
+{
+  return open<unique_db_t>(filename, ::std::forward<A>(args)...);
 }
 
 template <typename ...A>
@@ -679,33 +688,24 @@ inline auto open_unique(::std::string const& filename, A&& ...args) noexcept(
   noexcept(open_unique(filename.c_str(), ::std::forward<A>(args)...))
 )
 {
-  return open_unique(filename.c_str(), ::std::forward<A>(args)...);
+  return open<unique_db_t>(filename.c_str(), ::std::forward<A>(args)...);
 }
 
 //open_shared/////////////////////////////////////////////////////////////////
-inline auto open_shared(char const* const filename, int const flags,
-  char const* const zvfs = nullptr) noexcept
+template <typename ...A>
+inline auto open_shared(char const* const filename, A&& ...args) noexcept(
+  noexcept(open<shared_db_t>(filename, ::std::forward<A>(args)...))
+)
 {
-  sqlite3* db;
-
-  if (SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs))
-  {
-    return shared_db_t(db, detail::sqlite3_deleter());
-  }
-  else
-  {
-    detail::sqlite3_deleter(db);
-
-    return shared_db_t();
-  }
+  return open<shared_db_t>(filename, ::std::forward<A>(args)...);
 }
 
 template <typename ...A>
 inline auto open_shared(::std::string const& filename, A&& ...args) noexcept(
-  noexcept(open_shared(filename.c_str(), ::std::forward<A>(args)...))
+  noexcept(open<shared_db_t>(filename.c_str(), ::std::forward<A>(args)...))
 )
 {
-  return open_shared(filename.c_str(), ::std::forward<A>(args)...);
+  return open<shared_db_t>(filename.c_str(), ::std::forward<A>(args)...);
 }
 
 //reset///////////////////////////////////////////////////////////////////////
