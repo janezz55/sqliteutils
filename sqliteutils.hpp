@@ -646,14 +646,16 @@ inline auto open_unique(char const* const filename, int const flags,
 {
   sqlite3* db;
 
-#ifndef NDEBUG
-  sqlite3_open_v2(filename, &db, flags, zvfs);
-#else
-  auto const r(sqlite3_open_v2(filename, &db, flags, zvfs));
-  assert(SQLITE_OK == r);
-#endif //NDEBUG
+  if (SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs))
+  {
+    return unique_db_t(db);
+  }
+  else
+  {
+    detail::sqlite3_deleter(db);
 
-  return unique_db_t(db);
+    return unique_db_t();
+  }
 }
 
 template <typename ...A>
@@ -670,19 +672,16 @@ inline auto open_shared(char const* const filename, int const flags,
 {
   sqlite3* db;
 
-#ifndef NDEBUG
-  sqlite3_open_v2(filename, &db, flags, zvfs);
-#else
-  auto const r(sqlite3_open_v2(filename, &db, flags, zvfs));
-  assert(SQLITE_OK == r);
-#endif //NDEBUG
+  if (SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs))
+  {
+    return shared_db_t(db, detail::sqlite3_deleter());
+  }
+  else
+  {
+    detail::sqlite3_deleter(db);
 
-  return shared_db_t(db,
-    [](auto const db) noexcept
-    {
-      detail::sqlite3_deleter()(db);
-    }
-  );
+    return shared_db_t();
+  }
 }
 
 template <typename ...A>
