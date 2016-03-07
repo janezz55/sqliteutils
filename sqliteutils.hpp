@@ -482,7 +482,7 @@ inline typename ::std::enable_if<
   ::std::is_same<T, ::std::string>{},
   T
 >::type
-get(sqlite3_stmt* const stmt, int const i = 0) noexcept
+get(sqlite3_stmt* const stmt, int const i = 0)
 {
   return {
     get<char const*>(stmt, i),
