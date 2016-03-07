@@ -200,6 +200,14 @@ using shared_db_t = ::std::shared_ptr<sqlite3>;
 
 using unique_db_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
 
+template <typename T>
+using is_db_t = 
+  ::std::integral_constant<
+    bool,
+    ::std::is_same<T, shared_db_t>{} ||
+    ::std::is_same<T, unique_db_t>{}
+  >;
+
 using shared_stmt_t = ::std::shared_ptr<sqlite3_stmt>;
 
 using unique_stmt_t = ::std::unique_ptr<sqlite3_stmt,
@@ -230,7 +238,7 @@ template <typename T,
     std::is_same<T, char>{}
   >::type
 >
-inline unique_stmt_t make_unique(sqlite3* const db, T const* const& a,
+inline auto make_unique(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
 {
   sqlite3_stmt* stmt;
@@ -245,8 +253,7 @@ inline unique_stmt_t make_unique(sqlite3* const db, T const* const& a,
 }
 
 template <::std::size_t N>
-inline unique_stmt_t make_unique(sqlite3* const db,
-  char const (&a)[N]) noexcept
+inline auto make_unique(sqlite3* const db, char const (&a)[N]) noexcept
 {
   sqlite3_stmt* stmt;
 
@@ -265,20 +272,64 @@ inline auto make_unique(sqlite3* const db, ::std::string const& a) noexcept
 }
 
 // forwarders
-template <typename ...A>
-inline auto make_unique(shared_db_t const& db, A&& ...args) noexcept(
+template <typename D, typename ...A,
+  typename = typename ::std::enable_if<is_db_t<D>{}>::type
+>
+inline auto make_unique(D const& db, A&& ...args) noexcept(
   noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
 )
 {
   return make_unique(db.get(), ::std::forward<A>(args)...);
 }
 
-template <typename ...A>
-inline auto make_unique(unique_db_t const& db, A&& ...args) noexcept(
-  noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
+//make_shared/////////////////////////////////////////////////////////////////
+template <typename T,
+  typename = typename std::enable_if<
+    std::is_same<T, char>{}
+  >::type
+>
+inline auto make_shared(sqlite3* const db, T const* const& a,
+  int const size = -1) noexcept
+{
+  sqlite3_stmt* stmt;
+
+#ifndef NDEBUG
+  auto const result(sqlite3_prepare_v2(db, a, size, &stmt, nullptr));
+  assert(SQLITE_OK == result);
+#else
+  sqlite3_prepare_v2(db, a, size, &stmt, nullptr);
+#endif // NDEBUG
+  return shared_stmt_t(stmt, detail::sqlite3_stmt_deleter());
+}
+
+template <::std::size_t N>
+inline auto make_shared(sqlite3* const db, char const (&a)[N]) noexcept
+{
+  sqlite3_stmt* stmt;
+
+#ifndef NDEBUG
+  auto const result(sqlite3_prepare_v2(db, a, N, &stmt, nullptr));
+  assert(SQLITE_OK == result);
+#else
+  sqlite3_prepare_v2(db, a, N, &stmt, nullptr);
+#endif // NDEBUG
+  return shared_stmt_t(stmt, detail::sqlite3_stmt_deleter());
+}
+
+inline auto make_shared(sqlite3* const db, ::std::string const& a) noexcept
+{
+  return make_shared(db, a.c_str(), a.size());
+}
+
+// forwarders
+template <typename D, typename ...A,
+  typename = typename ::std::enable_if<is_db_t<D>{}>::type
+>
+inline auto make_shared(D const& db, A&& ...args) noexcept(
+  noexcept(make_shared(db.get(), ::std::forward<A>(args)...))
 )
 {
-  return make_unique(db.get(), ::std::forward<A>(args)...);
+  return make_shared(db.get(), ::std::forward<A>(args)...);
 }
 
 //exec////////////////////////////////////////////////////////////////////////
