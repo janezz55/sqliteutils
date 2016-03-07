@@ -413,16 +413,10 @@ inline auto exec(sqlite3* const db, ::std::string const& a) noexcept
 }
 
 // forwarders
-template <typename ...A>
-inline auto exec(shared_db_t const& db, A&& ...args) noexcept(
-  noexcept(exec(db.get(), ::std::forward<A>(args)...))
-)
-{
-  return exec(db.get(), ::std::forward<A>(args)...);
-}
-
-template <typename ...A>
-inline auto exec(unique_db_t const& db, A&& ...args) noexcept(
+template <typename D, typename ...A,
+  typename = typename ::std::enable_if<is_db_t<D>{}>::type
+>
+inline auto exec(D const& db, A&& ...args) noexcept(
   noexcept(exec(db.get(), ::std::forward<A>(args)...))
 )
 {
@@ -504,6 +498,19 @@ inline typename ::std::enable_if<
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return sqlite3_column_blob(stmt, i);
+}
+
+template <typename T>
+inline typename ::std::enable_if<
+  ::std::is_same<T, blobpair_t>{},
+  T
+>::type
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept
+{
+  return {
+    get<void const*>(stmt, i),
+    sqlite3_column_bytes(stmt, i)
+  };
 }
 
 template <typename>
