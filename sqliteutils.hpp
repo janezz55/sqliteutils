@@ -618,7 +618,9 @@ inline auto rexecget(S&& stmt, int const i = 0, A&& ...args)
   return get<T>(stmt, i);
 }
 
-template <typename T, int I = 1, typename D, typename A, typename ...B>
+template <typename T, int I = 1, typename D, typename A, typename ...B, 
+  typename = typename ::std::enable_if<is_db_t<D>{}>::type
+>
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args)
 {
   return execget<T, I>(
