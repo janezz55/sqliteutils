@@ -1001,9 +1001,7 @@ inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
 
 }
 
-template <typename F, typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename F, typename S>
 inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
     noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator()))
   )
@@ -1012,8 +1010,7 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
 }
 
 template <typename ...A, typename F, typename S,
-  typename = typename ::std::enable_if<bool(sizeof...(A))>::type,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
+  typename = typename ::std::enable_if<bool(sizeof...(A))>::type
 >
 inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
     noexcept(
@@ -1032,9 +1029,7 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
   );
 }
 
-template <typename F, typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename F, typename S>
 inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
 {
   decltype(exec(stmt)) r;
@@ -1067,9 +1062,7 @@ inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
 }
 
 //emplace/////////////////////////////////////////////////////////////////////
-template <typename C, typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S>
 inline auto emplace(S const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
@@ -1096,9 +1089,7 @@ inline auto emplace(S const& stmt, C& c, int const i = 0)
   return r;
 }
 
-template <typename C, typename S, typename T,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S, typename T>
 inline auto emplace_n(S const& stmt, C& c, T const n, int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
@@ -1126,9 +1117,7 @@ inline auto emplace_n(S const& stmt, C& c, T const n, int const i = 0)
 }
 
 //emplace_back////////////////////////////////////////////////////////////////
-template <typename C, typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S>
 inline auto emplace_back(S const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
@@ -1155,9 +1144,7 @@ inline auto emplace_back(S const& stmt, C& c, int const i = 0)
   return r;
 }
 
-template <typename C, typename S, typename T,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S, typename T>
 inline auto emplace_back_n(S const& stmt, C& c, T const n, int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
@@ -1185,9 +1172,7 @@ inline auto emplace_back_n(S const& stmt, C& c, T const n, int const i = 0)
 }
 
 //insert//////////////////////////////////////////////////////////////////////
-template <typename C, typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S>
 inline auto insert(S const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
@@ -1214,9 +1199,7 @@ inline auto insert(S const& stmt, C& c, int const i = 0)
   return r;
 }
 
-template <typename C, typename S, typename T,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S, typename T>
 inline auto insert_n(S const& stmt, C& c, T const n, int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
@@ -1244,9 +1227,7 @@ inline auto insert_n(S const& stmt, C& c, T const n, int const i = 0)
 }
 
 //push_back///////////////////////////////////////////////////////////////////
-template <typename C, typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S>
 inline auto push_back(S const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
@@ -1273,9 +1254,7 @@ inline auto push_back(S const& stmt, C& c, int const i = 0)
   return r;
 }
 
-template <typename C, typename S, typename T,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename C, typename S, typename T>
 inline auto push_back_n(S const& stmt, C& c, T const n, int const i = 0)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
