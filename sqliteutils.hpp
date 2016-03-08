@@ -922,7 +922,7 @@ struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
 };
 
 template <typename ...A, typename F, typename S, ::std::size_t ...Is>
-inline auto foreach_row_apply(S const& stmt, F const f, int const i,
+inline auto foreach_row_apply(S const& stmt, F&& f, int const i,
   ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
@@ -1016,7 +1016,7 @@ template <typename ...A, typename F, typename S,
   typename = typename ::std::enable_if<bool(sizeof...(A))>::type,
   typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
 >
-inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
+inline auto foreach_row(S const& stmt, F const f, int const i = 0) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
         ::std::forward<F>(f),
@@ -1027,7 +1027,7 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
   )
 {
   return foreach_row_apply<A...>(stmt,
-    ::std::forward<F>(f),
+    f,
     i,
     ::std::make_index_sequence<sizeof...(A)>()
   );
