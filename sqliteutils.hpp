@@ -784,10 +784,9 @@ inline auto column_name16(sqlite3_stmt* const stmt, int const i = 0) noexcept
 template <typename S,
   typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
 >
-inline auto column_name16(S const& stmt,
-  int const i = 0) noexcept(
-    noexcept(column_name16(stmt.get(), i))
-  )
+inline auto column_name16(S const& stmt, int const i = 0) noexcept(
+  noexcept(column_name16(stmt.get(), i))
+)
 {
   return column_name16(stmt.get(), i);
 }
