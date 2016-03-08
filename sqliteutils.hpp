@@ -1071,7 +1071,7 @@ inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
 template <typename C, typename S,
   typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
 >
-inline void emplace(S const& stmt, C& c, int const i = 0)
+inline auto emplace(S const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
 
