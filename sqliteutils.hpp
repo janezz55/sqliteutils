@@ -601,7 +601,11 @@ inline auto get(S const& stmt, int const i = 0) noexcept(
 
 //execget/////////////////////////////////////////////////////////////////////
 template <typename T, int I = 1, typename S, typename ...A>
-inline auto execget(S&& stmt, int const i = 0, A&& ...args)
+inline auto execget(S&& stmt, int const i = 0, A&& ...args) noexcept(
+  noexcept(exec<I>(::std::forward<S>(stmt), ::std::forward<A>(args)...),
+    get<T>(stmt, i)
+  )
+)
 {
   auto const r(exec<I>(::std::forward<S>(stmt), ::std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
@@ -610,7 +614,11 @@ inline auto execget(S&& stmt, int const i = 0, A&& ...args)
 }
 
 template <typename T, int I = 1, typename S, typename ...A>
-inline auto rexecget(S&& stmt, int const i = 0, A&& ...args)
+inline auto rexecget(S&& stmt, int const i = 0, A&& ...args) noexcept(
+  noexcept(rexec<I>(::std::forward<S>(stmt), ::std::forward<A>(args)...),
+    get<T>(stmt, i)
+  )
+)
 {
   auto const r(rexec<I>(::std::forward<S>(stmt), ::std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
@@ -619,7 +627,14 @@ inline auto rexecget(S&& stmt, int const i = 0, A&& ...args)
 }
 
 template <typename T, int I = 1, typename D, typename A, typename ...B>
-inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args)
+inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
+  noexcept(execget<T, I>(
+      make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
+      i,
+      ::std::forward<B>(args)...
+    )
+  )
+)
 {
   return execget<T, I>(
     make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
