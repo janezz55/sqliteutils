@@ -1036,7 +1036,7 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
 template <typename F, typename S,
   typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
 >
-auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
+inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
 {
   decltype(exec(stmt)) r;
 
@@ -1189,7 +1189,7 @@ inline auto emplace_back_n(S const& stmt, C& c, T const n, int const i = 0)
 template <typename C, typename S,
   typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
 >
-inline void insert(S const& stmt, C& c, int const i = 0)
+inline auto insert(S const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
 
@@ -1248,7 +1248,7 @@ inline auto insert_n(S const& stmt, C& c, T const n, int const i = 0)
 template <typename C, typename S,
   typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
 >
-inline void push_back(S const& stmt, C& c, int const i = 0)
+inline auto push_back(S const& stmt, C& c, int const i = 0)
 {
   decltype(exec(stmt)) r;
 
