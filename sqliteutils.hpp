@@ -981,15 +981,16 @@ inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
 }
 
 template <typename F, typename S, typename R, typename ...A>
-inline auto foreach_row_fwd(S const& stmt, F&& f, int const i) noexcept(
-  noexcept(
-    foreach_row_apply<A...>(stmt,
-      ::std::forward<F>(f),
-      i,
-      ::std::make_index_sequence<sizeof...(A)>()
+inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
+  R (F::*)(A...)) noexcept(
+    noexcept(
+      foreach_row_apply<A...>(stmt,
+        ::std::forward<F>(f),
+        i,
+        ::std::make_index_sequence<sizeof...(A)>()
+      )
     )
   )
-)
 {
   return foreach_row_apply<A...>(stmt,
     ::std::forward<F>(f),
@@ -1017,6 +1018,26 @@ inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
   );
 }
 
+}
+
+template <typename ...A, typename F, typename S,
+  typename = typename ::std::enable_if<bool(sizeof...(A))>::type
+>
+inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
+    noexcept(
+      foreach_row_apply<A...>(stmt,
+        ::std::forward<F>(f),
+        i,
+        ::std::make_index_sequence<sizeof...(A)>()
+      )
+    )
+  )
+{
+  return foreach_row_apply<A...>(stmt,
+    f,
+    i,
+    ::std::make_index_sequence<sizeof...(A)>()
+  );
 }
 
 template <typename F, typename S>
@@ -1047,26 +1068,6 @@ foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
   )
 {
   return foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator());
-}
-
-template <typename ...A, typename F, typename S,
-  typename = typename ::std::enable_if<bool(sizeof...(A))>::type
->
-inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
-    noexcept(
-      foreach_row_apply<A...>(stmt,
-        ::std::forward<F>(f),
-        i,
-        ::std::make_index_sequence<sizeof...(A)>()
-      )
-    )
-  )
-{
-  return foreach_row_apply<A...>(stmt,
-    f,
-    i,
-    ::std::make_index_sequence<sizeof...(A)>()
-  );
 }
 
 template <typename F, typename S>
