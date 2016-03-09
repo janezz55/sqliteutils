@@ -962,7 +962,26 @@ inline auto foreach_row_apply(S const& stmt, F&& f, int const i,
 }
 
 template <typename F, typename S, typename R, typename ...A>
-inline auto foreach_row_fwd(S const& stmt, F const f, int const i,
+inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
+  R (*)(A...)) noexcept(
+    noexcept(
+      foreach_row_apply<A...>(stmt,
+        ::std::forward<F>(f),
+        i,
+        ::std::make_index_sequence<sizeof...(A)>()
+      )
+    )
+  )
+{
+  return foreach_row_apply<A...>(stmt,
+    ::std::forward<F>(f),
+    i,
+    ::std::make_index_sequence<sizeof...(A)>()
+  );
+}
+
+template <typename F, typename S, typename R, typename ...A>
+inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
   R (F::*)(A...)) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
