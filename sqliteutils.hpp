@@ -921,7 +921,7 @@ struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
 };
 
 template <typename ...A, typename F, typename S, ::std::size_t ...Is>
-inline auto foreach_row_apply(S const& stmt, F&& f, int const i,
+inline auto foreach_row_apply(S const& stmt, F const f, int const i,
   ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
@@ -963,7 +963,7 @@ inline auto foreach_row_apply(S const& stmt, F&& f, int const i,
 
 template <typename F, typename S, typename R, typename ...A>
 inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
-  R (*)(A...)) noexcept(
+  R (* const)(A...)) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
         ::std::forward<F>(f),
@@ -981,16 +981,15 @@ inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
 }
 
 template <typename F, typename S, typename R, typename ...A>
-inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
-  R (F::*)(A...)) noexcept(
-    noexcept(
-      foreach_row_apply<A...>(stmt,
-        ::std::forward<F>(f),
-        i,
-        ::std::make_index_sequence<sizeof...(A)>()
-      )
+inline auto foreach_row_fwd(S const& stmt, F&& f, int const i) noexcept(
+  noexcept(
+    foreach_row_apply<A...>(stmt,
+      ::std::forward<F>(f),
+      i,
+      ::std::make_index_sequence<sizeof...(A)>()
     )
   )
+)
 {
   return foreach_row_apply<A...>(stmt,
     ::std::forward<F>(f),
@@ -1021,7 +1020,29 @@ inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
 }
 
 template <typename F, typename S>
-inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
+inline typename ::std::enable_if<
+  !::std::is_class<F>{},
+  decltype(
+    foreach_row_fwd(::std::declval<S>(), ::std::declval<F>(), 0)
+  )
+>::type
+foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
+    noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i))
+  )
+{
+  return foreach_row_fwd(stmt, ::std::forward<F>(f), i);
+}
+
+template <typename F, typename S>
+inline typename ::std::enable_if<
+  ::std::is_class<F>{},
+  decltype(
+    foreach_row_fwd(::std::declval<S>(), ::std::declval<F>(), 0,
+      &F::operator()
+    )
+  )
+>::type
+foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
     noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator()))
   )
 {
