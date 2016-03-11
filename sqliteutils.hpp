@@ -201,11 +201,14 @@ using shared_db_t = ::std::shared_ptr<sqlite3>;
 using unique_db_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
 
 template <typename T>
+using remove_cvr_t = ::std::remove_cv_t<::std::remove_reference_t<T> >;
+
+template <typename T>
 using is_db_t = 
   ::std::integral_constant<
     bool,
-    ::std::is_same<T, shared_db_t>{} ||
-    ::std::is_same<T, unique_db_t>{}
+    ::std::is_same<remove_cvr_t<T>, shared_db_t>{} ||
+    ::std::is_same<remove_cvr_t<T>, unique_db_t>{}
   >;
 
 using shared_stmt_t = ::std::shared_ptr<sqlite3_stmt>;
@@ -218,8 +221,8 @@ template <typename T>
 using is_stmt_t = 
   ::std::integral_constant<
     bool,
-    ::std::is_same<T, shared_stmt_t>{} ||
-    ::std::is_same<T, unique_stmt_t>{}
+    ::std::is_same<remove_cvr_t<T>, shared_stmt_t>{} ||
+    ::std::is_same<remove_cvr_t<T>, unique_stmt_t>{}
   >;
 
 //set/////////////////////////////////////////////////////////////////////////
@@ -626,9 +629,16 @@ inline auto rexecget(S&& stmt, int const i = 0, A&& ...args) noexcept(
   return get<T>(stmt, i);
 }
 
-template <typename T, int I = 1, typename D, typename A, typename ...B>
+template <typename T, int I = 1, typename D, typename A, typename ...B,
+  typename = typename ::std::enable_if<
+    ::std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
+    ::std::is_same<remove_cvr_t<D>, shared_db_t>{} ||
+    ::std::is_same<remove_cvr_t<D>, unique_db_t>{}
+  >::type
+>
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
-  noexcept(execget<T, I>(
+  noexcept(
+    execget<T, I>(
       make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
       i,
       ::std::forward<B>(args)...
