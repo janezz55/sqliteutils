@@ -30,7 +30,7 @@
 # pragma once
 
 #if __cplusplus < 201402L
-# error "You need a C++14 compiler"
+# error "You need a c++14 compiler"
 #endif // __cplusplus
 
 #include "sqlite3.h"
