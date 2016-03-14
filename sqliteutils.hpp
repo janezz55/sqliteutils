@@ -363,9 +363,7 @@ inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
 {
   sqlite3_reset(stmt);
 
-  set<I>(stmt, ::std::forward<A>(args)...);
-
-  return exec(stmt);
+  return exec<I>(stmt, ::std::forward<A>(args)...);
 }
 
 // forwarders
