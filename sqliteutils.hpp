@@ -1111,8 +1111,8 @@ inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
 }
 
 //emplace/////////////////////////////////////////////////////////////////////
-template <typename C, typename S>
-inline auto emplace(S const& stmt, C& c, int const i = 0)
+template <typename FP, FP fp, typename C, typename S>
+inline auto container_push(S const& stmt, C& c, int const i)
 {
   decltype(exec(stmt)) r;
 
@@ -1121,7 +1121,7 @@ inline auto emplace(S const& stmt, C& c, int const i = 0)
     switch (r = exec(stmt))
     {
       case SQLITE_ROW:
-        c.emplace(get<typename C::value_type>(stmt, i));
+        (c.*fp)(get<typename C::value_type>(stmt, i));
 
         continue;
 
@@ -1138,8 +1138,8 @@ inline auto emplace(S const& stmt, C& c, int const i = 0)
   return r;
 }
 
-template <typename C, typename S, typename T>
-inline auto emplace_n(S const& stmt, C& c, T const n, int const i = 0)
+template <typename FP, FP fp, typename C, typename S, typename T>
+inline auto container_push(S const& stmt, C& c, T const n, int const i)
 {
   decltype(exec(stmt)) r(SQLITE_DONE);
 
@@ -1148,7 +1148,7 @@ inline auto emplace_n(S const& stmt, C& c, T const n, int const i = 0)
     switch (r = exec(stmt))
     {
       case SQLITE_ROW:
-        c.emplace(get<typename C::value_type>(stmt, i));
+        (c.*fp)(get<typename C::value_type>(stmt, i));
 
         continue;
 
@@ -1163,171 +1163,82 @@ inline auto emplace_n(S const& stmt, C& c, T const n, int const i = 0)
   }
 
   return r;
+}
+
+//emplace/////////////////////////////////////////////////////////////////////
+template <typename C, typename S>
+inline auto emplace(S const& s, C& c, int const i = 0)
+{
+  return container_push<
+    decltype(&C::template emplace<typename C::value_type>),
+    &C::template emplace<typename C::value_type>
+  >(s, c, i);
+}
+
+template <typename C, typename S, typename T>
+inline auto emplace_n(S const& s, C& c, T const n, int const i = 0)
+{
+  return container_push<
+    decltype(&C::template emplace<typename C::value_type>),
+    &C::template emplace<typename C::value_type>
+  >(s, c, n, i);
 }
 
 //emplace_back////////////////////////////////////////////////////////////////
 template <typename C, typename S>
-inline auto emplace_back(S const& stmt, C& c, int const i = 0)
+inline auto emplace_back(S const& s, C& c, int const i = 0)
 {
-  decltype(exec(stmt)) r;
-
-  for (;;)
-  {
-    switch (r = exec(stmt))
-    {
-      case SQLITE_ROW:
-        c.emplace_back(get<typename C::value_type>(stmt, i));
-
-        continue;
-
-      case SQLITE_DONE:
-        break;
-
-      default:
-        assert(!"unhandled result from exec");
-    }
-
-    break;
-  }
-
-  return r;
+  return container_push<
+    decltype(&C::template emplace_back<typename C::value_type>),
+    &C::template emplace_back<typename C::value_type>
+  >(s, c, i);
 }
 
 template <typename C, typename S, typename T>
-inline auto emplace_back_n(S const& stmt, C& c, T const n, int const i = 0)
+inline auto emplace_back_n(S const& s, C& c, T const n, int const i = 0)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
-
-  for (T j{}; j != n; ++j)
-  {
-    switch (r = exec(stmt))
-    {
-      case SQLITE_ROW:
-        c.emplace_back(get<typename C::value_type>(stmt, i));
-
-        continue;
-
-      case SQLITE_DONE:;
-        break;
-
-      default:
-        assert(!"unhandled result from exec");
-    }
-
-    break;
-  }
-
-  return r;
+  return container_push<
+    decltype(&C::template emplace_back<typename C::value_type>),
+    &C::template emplace_back<typename C::value_type>
+  >(s, c, n, i);
 }
 
 //insert//////////////////////////////////////////////////////////////////////
 template <typename C, typename S>
-inline auto insert(S const& stmt, C& c, int const i = 0)
+inline auto insert(S const& s, C& c, int const i = 0)
 {
-  decltype(exec(stmt)) r;
-
-  for (;;)
-  {
-    switch (r = exec(stmt))
-    {
-      case SQLITE_ROW:
-        c.insert(get<typename C::value_type>(stmt, i));
-
-        continue;
-
-      case SQLITE_DONE:
-        break;
-
-      default:
-        assert(!"unhandled result from exec");
-    }
-
-    break;
-  }
-
-  return r;
+  return container_push<
+    decltype(&C::template insert<typename C::value_type>),
+    &C::template insert<typename C::value_type>
+  >(s, c, i);
 }
 
 template <typename C, typename S, typename T>
-inline auto insert_n(S const& stmt, C& c, T const n, int const i = 0)
+inline auto insert_n(S const& s, C& c, T const n, int const i = 0)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
-
-  for (T j{}; j != n; ++j)
-  {
-    switch (r = exec(stmt))
-    {
-      case SQLITE_ROW:
-        c.insert(get<typename C::value_type>(stmt, i));
-
-        continue;
-
-      case SQLITE_DONE:;
-        break;
-
-      default:
-        assert(!"unhandled result from exec");
-    }
-
-    break;
-  }
-
-  return r;
+  return container_push<
+    decltype(&C::template insert<typename C::value_type>),
+    &C::template insert<typename C::value_type>
+  >(s, c, n, i);
 }
 
 //push_back///////////////////////////////////////////////////////////////////
 template <typename C, typename S>
-inline auto push_back(S const& stmt, C& c, int const i = 0)
+inline auto push_back(S const& s, C& c, int const i = 0)
 {
-  decltype(exec(stmt)) r;
-
-  for (;;)
-  {
-    switch (r = exec(stmt))
-    {
-      case SQLITE_ROW:
-        c.push_back(get<typename C::value_type>(stmt, i));
-
-        continue;
-
-      case SQLITE_DONE:
-        break;
-
-      default:
-        assert(!"unhandled result from exec");
-    }
-
-    break;
-  }
-
-  return r;
+  return container_push<
+    decltype(&C::template push_back<typename C::value_type>),
+    &C::template push_back<typename C::value_type>
+  >(s, c, i);
 }
 
 template <typename C, typename S, typename T>
-inline auto push_back_n(S const& stmt, C& c, T const n, int const i = 0)
+inline auto push_back_n(S const& s, C& c, T const n, int const i = 0)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
-
-  for (T j{}; j != n; ++j)
-  {
-    switch (r = exec(stmt))
-    {
-      case SQLITE_ROW:
-        c.push_back(get<typename C::value_type>(stmt, i));
-
-        continue;
-
-      case SQLITE_DONE:;
-        break;
-
-      default:
-        assert(!"unhandled result from exec");
-    }
-
-    break;
-  }
-
-  return r;
+  return container_push<
+    decltype(&C::template push_back<typename C::value_type>),
+    &C::template push_back<typename C::value_type>
+  >(s, c, n, i);
 }
 
 }
