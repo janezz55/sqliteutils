@@ -1110,7 +1110,7 @@ inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
   return r;
 }
 
-//emplace/////////////////////////////////////////////////////////////////////
+//container_push//////////////////////////////////////////////////////////////
 template <typename FP, FP fp, typename C, typename S>
 inline auto container_push(S const& stmt, C& c, int const i)
 {
