@@ -1112,16 +1112,16 @@ inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
 
 //container_push//////////////////////////////////////////////////////////////
 template <typename FP, FP fp, typename C, typename S>
-inline auto container_push(S const& stmt, C& c, int const i)
+inline auto container_push(S&& s, C& c, int const i)
 {
-  decltype(exec(stmt)) r;
+  decltype(exec(::std::forward<S>(s))) r;
 
   for (;;)
   {
-    switch (r = exec(stmt))
+    switch (r = exec(::std::forward<S>(s)))
     {
       case SQLITE_ROW:
-        (c.*fp)(get<typename C::value_type>(stmt, i));
+        (c.*fp)(get<typename C::value_type>(::std::forward<S>(s), i));
 
         continue;
 
@@ -1139,16 +1139,16 @@ inline auto container_push(S const& stmt, C& c, int const i)
 }
 
 template <typename FP, FP fp, typename C, typename S, typename T>
-inline auto container_push(S const& stmt, C& c, T const n, int const i)
+inline auto container_push(S&& s, C& c, T const n, int const i)
 {
-  decltype(exec(stmt)) r(SQLITE_DONE);
+  decltype(exec(::std::forward<S>(s))) r(SQLITE_DONE);
 
   for (T j{}; j != n; ++j)
   {
-    switch (r = exec(stmt))
+    switch (r = exec(::std::forward<S>(s)))
     {
       case SQLITE_ROW:
-        (c.*fp)(get<typename C::value_type>(stmt, i));
+        (c.*fp)(get<typename C::value_type>(::std::forward<S>(s), i));
 
         continue;
 
@@ -1167,12 +1167,12 @@ inline auto container_push(S const& stmt, C& c, T const n, int const i)
 
 //emplace/////////////////////////////////////////////////////////////////////
 template <typename C, typename S>
-inline auto emplace(S const& s, C& c, int const i = 0)
+inline auto emplace(S&& s, C& c, int const i = 0)
 {
   return container_push<
     decltype(&C::template emplace<typename C::value_type>),
     &C::template emplace<typename C::value_type>
-  >(s, c, i);
+  >(::std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
@@ -1181,36 +1181,36 @@ inline auto emplace_n(S const& s, C& c, T const n, int const i = 0)
   return container_push<
     decltype(&C::template emplace<typename C::value_type>),
     &C::template emplace<typename C::value_type>
-  >(s, c, n, i);
+  >(::std::forward<S>(s), c, n, i);
 }
 
 //emplace_back////////////////////////////////////////////////////////////////
 template <typename C, typename S>
-inline auto emplace_back(S const& s, C& c, int const i = 0)
+inline auto emplace_back(S&& s, C& c, int const i = 0)
 {
   return container_push<
     decltype(&C::template emplace_back<typename C::value_type>),
     &C::template emplace_back<typename C::value_type>
-  >(s, c, i);
+  >(::std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
-inline auto emplace_back_n(S const& s, C& c, T const n, int const i = 0)
+inline auto emplace_back_n(S&& s, C& c, T const n, int const i = 0)
 {
   return container_push<
     decltype(&C::template emplace_back<typename C::value_type>),
     &C::template emplace_back<typename C::value_type>
-  >(s, c, n, i);
+  >(::std::forward<S>(s), c, n, i);
 }
 
 //insert//////////////////////////////////////////////////////////////////////
 template <typename C, typename S>
-inline auto insert(S const& s, C& c, int const i = 0)
+inline auto insert(S&& s, C& c, int const i = 0)
 {
   return container_push<
     decltype(&C::template insert<typename C::value_type>),
     &C::template insert<typename C::value_type>
-  >(s, c, i);
+  >(::std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
@@ -1219,26 +1219,26 @@ inline auto insert_n(S const& s, C& c, T const n, int const i = 0)
   return container_push<
     decltype(&C::template insert<typename C::value_type>),
     &C::template insert<typename C::value_type>
-  >(s, c, n, i);
+  >(::std::forward<S>(s), c, n, i);
 }
 
 //push_back///////////////////////////////////////////////////////////////////
 template <typename C, typename S>
-inline auto push_back(S const& s, C& c, int const i = 0)
+inline auto push_back(S&& s, C& c, int const i = 0)
 {
   return container_push<
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
-  >(s, c, i);
+  >(::std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
-inline auto push_back_n(S const& s, C& c, T const n, int const i = 0)
+inline auto push_back_n(S&& s, C& c, T const n, int const i = 0)
 {
   return container_push<
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
-  >(s, c, n, i);
+  >(::std::forward<S>(s), c, n, i);
 }
 
 }
