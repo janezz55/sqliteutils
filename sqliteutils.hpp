@@ -514,40 +514,20 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
   };
 }
 
+namespace
+{
+
 template <typename>
 struct is_std_pair : ::std::false_type { };
 
 template <class T1, class T2>
 struct is_std_pair<::std::pair<T1, T2> > : ::std::true_type { };
 
-template <typename T>
-inline typename ::std::enable_if<
-  is_std_pair<T>{},
-  T
->::type
-get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
-  noexcept(
-    T(
-      get<typename T::first_type>(stmt, i),
-      get<typename T::second_type>(stmt, i + 1)
-    )
-  )
-)
-{
-  return {
-    get<typename T::first_type>(stmt, i),
-    get<typename T::second_type>(stmt, i + 1)
-  };
-}
-
 template <typename>
 struct is_std_tuple : ::std::false_type { };
 
 template <class ...A>
 struct is_std_tuple<::std::tuple<A...> > : ::std::true_type { };
-
-namespace
-{
 
 template <typename A, typename ...B>
 struct count_types :
@@ -582,15 +562,39 @@ struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
 {
 };
 
-template <typename T, typename ...A, ::std::size_t ...Is>
-T make_tuple(sqlite3_stmt* const stmt, int i, ::std::tuple<A...>* const,
+template <typename T, ::std::size_t ...Is>
+T make_tuple(sqlite3_stmt* const stmt, int i,
   ::std::index_sequence<Is...> const)
 {
   return T{
-    get<A>(stmt, i + count_types_n<Is, 0, A...>{})...
+    get<typename ::std::tuple_element<Is, T>::type>(stmt,
+      i +
+      count_types_n<Is, 0, typename ::std::tuple_element<Is, T>::type...>{}
+    )...
   };
 }
 
+}
+
+template <typename T>
+inline typename ::std::enable_if<
+  is_std_pair<T>{},
+  T
+>::type
+get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
+  noexcept(
+    T(
+      get<typename T::first_type>(stmt, i),
+      get<typename T::second_type>(stmt, i + 1)
+    )
+  )
+)
+{
+  return {
+    get<typename T::first_type>(stmt, i),
+    get<typename T::second_type>(stmt, i +
+      count_types_n<1, 0, typename T::first_type, typename T::second_type>{})
+  };
 }
 
 template <typename T>
@@ -600,13 +604,13 @@ inline typename ::std::enable_if<
 >::type
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
   noexcept(
-    make_tuple<T>(stmt, i, static_cast<T*>(nullptr),
+    make_tuple<T>(stmt, i,
       ::std::make_index_sequence<::std::tuple_size<T>{}>()
     )
   )
 )
 {
-  return make_tuple<T>(stmt, i, static_cast<T*>(nullptr),
+  return make_tuple<T>(stmt, i,
     ::std::make_index_sequence<::std::tuple_size<T>{}>());
 }
 
