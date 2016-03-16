@@ -563,7 +563,7 @@ struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
 };
 
 template <typename T, ::std::size_t ...Is>
-T make_tuple(sqlite3_stmt* const stmt, int i,
+T make_tuple(sqlite3_stmt* const stmt, int const i,
   ::std::index_sequence<Is...> const)
 {
   return T{
