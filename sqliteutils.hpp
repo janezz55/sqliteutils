@@ -549,15 +549,46 @@ struct is_std_tuple<::std::tuple<A...> > : ::std::true_type { };
 namespace
 {
 
-template <typename T, ::std::size_t ...Is>
-T make_tuple(sqlite3_stmt* const stmt, int const i,
-  ::std::index_sequence<Is...> const) noexcept(
-    noexcept(
-      T(get<typename ::std::tuple_element<Is, T>::type>(stmt, i + Is)...)
-    )
-  )
+template <typename A, typename ...B>
+struct count_types :
+  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
 {
-  return T(get<typename ::std::tuple_element<Is, T>::type>(stmt, i + Is)...);
+};
+
+template <typename A>
+struct count_types<A> : ::std::integral_constant<int, 1>
+{
+};
+
+template <typename A, typename B>
+struct count_types<::std::pair<A, B> > :
+  ::std::integral_constant<int, count_types<A>{} + count_types<B>{}>
+{
+};
+
+template <typename A, typename ...B>
+struct count_types<::std::tuple<A, B...> > :
+  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
+{
+};
+
+template <::std::size_t I, int S, typename A, typename ...B>
+struct count_types_n : count_types_n<I - 1, S + count_types<A>{}, B...>
+{
+};
+
+template <int S, typename A, typename ...B>
+struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
+{
+};
+
+template <typename T, typename ...A, ::std::size_t ...Is>
+T make_tuple(sqlite3_stmt* const stmt, int i, ::std::tuple<A...>* const,
+  ::std::index_sequence<Is...> const)
+{
+  return T{
+    get<A>(stmt, i + count_types_n<Is, 0, A...>{})...
+  };
 }
 
 }
@@ -569,15 +600,14 @@ inline typename ::std::enable_if<
 >::type
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
   noexcept(
-    make_tuple<T>(stmt, i,
+    make_tuple<T>(stmt, i, static_cast<T*>(nullptr),
       ::std::make_index_sequence<::std::tuple_size<T>{}>()
     )
   )
 )
 {
-  return make_tuple<T>(stmt, i,
-    ::std::make_index_sequence<::std::tuple_size<T>{}>()
-  );
+  return make_tuple<T>(stmt, i, static_cast<T*>(nullptr),
+    ::std::make_index_sequence<::std::tuple_size<T>{}>());
 }
 
 template <typename ...A,
@@ -894,39 +924,6 @@ inline auto bytes(A&& ...args) noexcept(
 //for_each////////////////////////////////////////////////////////////////////
 namespace
 {
-
-template <typename A, typename ...B>
-struct count_types :
-  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
-{
-};
-
-template <typename A>
-struct count_types<A> : ::std::integral_constant<int, 1>
-{
-};
-
-template <typename A, typename B>
-struct count_types<::std::pair<A, B> > :
-  ::std::integral_constant<int, count_types<A>{} + count_types<B>{}>
-{
-};
-
-template <typename A, typename ...B>
-struct count_types<::std::tuple<A, B...> > :
-  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
-{
-};
-
-template <::std::size_t I, int S, typename A, typename ...B>
-struct count_types_n : count_types_n<I - 1, S + count_types<A>{}, B...>
-{
-};
-
-template <int S, typename A, typename ...B>
-struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
-{
-};
 
 template <typename ...A, typename F, typename S, ::std::size_t ...Is>
 inline auto foreach_row_apply(S const& stmt, F const f, int const i,
