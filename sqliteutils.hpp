@@ -585,7 +585,10 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
   noexcept(
     T(
       get<typename T::first_type>(stmt, i),
-      get<typename T::second_type>(stmt, i + 1)
+      get<typename T::second_type>(stmt,
+        i +
+        count_types_n<1, 0, typename T::first_type, typename T::second_type>{}
+      )
     )
   )
 )
