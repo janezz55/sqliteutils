@@ -189,7 +189,9 @@ inline void set(sqlite3_stmt* const stmt, nullpair_t const& v) noexcept
 
 template <int I, ::std::size_t ...Is, typename ...A>
 void set(sqlite3_stmt* const stmt, ::std::index_sequence<Is...> const,
-  A&& ...args)
+  A&& ...args) noexcept(
+    noexcept(swallow{(set<I + Is>(stmt, args), 0)...})
+  )
 {
   swallow{(set<I + Is>(stmt, args), 0)...};
 }
