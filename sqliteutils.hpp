@@ -163,7 +163,7 @@ inline void set(sqlite3_stmt* const stmt, ::std::string const& v) noexcept
 template <int I, ::std::size_t N>
 inline void set(sqlite3_stmt* const stmt, char16_t const (&v)[N]) noexcept
 {
-  sqlite3_bind_text64(stmt, I, reinterpret_cast<char const*>(v), N,
+  sqlite3_bind_text64(stmt, I, reinterpret_cast<char const*>(&*v), N,
     SQLITE_STATIC, SQLITE_UTF16);
 }
 
