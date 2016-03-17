@@ -578,30 +578,7 @@ T make_tuple(sqlite3_stmt* const stmt, int const i,
 
 template <typename T>
 inline typename ::std::enable_if<
-  is_std_pair<T>{},
-  T
->::type
-get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
-  noexcept(
-    T(
-      get<typename T::first_type>(stmt, i),
-      get<typename T::second_type>(stmt,
-        i +
-        count_types_n<1, 0, typename T::first_type, typename T::second_type>{}
-      )
-    )
-  )
-)
-{
-  return {
-    get<typename T::first_type>(stmt, i),
-    get<typename T::second_type>(stmt, i +
-      count_types_n<1, 0, typename T::first_type, typename T::second_type>{})
-  };
-}
-
-template <typename T>
-inline typename ::std::enable_if<
+  is_std_pair<T>{} ||
   is_std_tuple<T>{},
   T
 >::type
