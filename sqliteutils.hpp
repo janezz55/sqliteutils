@@ -1163,12 +1163,12 @@ inline auto emplace(S&& s, C& c, int const i = 0)
 }
 
 template <typename C, typename S, typename T>
-inline auto emplace_n(S const& s, C& c, T const n, int const i = 0)
+inline auto emplace_n(S const& s, C& c, T&& n, int const i = 0)
 {
   return container_push<
     decltype(&C::template emplace<typename C::value_type>),
     &C::template emplace<typename C::value_type>
-  >(::std::forward<S>(s), c, n, i);
+  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
 }
 
 //emplace_back////////////////////////////////////////////////////////////////
@@ -1182,12 +1182,12 @@ inline auto emplace_back(S&& s, C& c, int const i = 0)
 }
 
 template <typename C, typename S, typename T>
-inline auto emplace_back_n(S&& s, C& c, T const n, int const i = 0)
+inline auto emplace_back_n(S&& s, C& c, T&& n, int const i = 0)
 {
   return container_push<
     decltype(&C::template emplace_back<typename C::value_type>),
     &C::template emplace_back<typename C::value_type>
-  >(::std::forward<S>(s), c, n, i);
+  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
 }
 
 //insert//////////////////////////////////////////////////////////////////////
@@ -1201,12 +1201,12 @@ inline auto insert(S&& s, C& c, int const i = 0)
 }
 
 template <typename C, typename S, typename T>
-inline auto insert_n(S const& s, C& c, T const n, int const i = 0)
+inline auto insert_n(S const& s, C& c, T&& n, int const i = 0)
 {
   return container_push<
     decltype(&C::template insert<typename C::value_type>),
     &C::template insert<typename C::value_type>
-  >(::std::forward<S>(s), c, n, i);
+  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
 }
 
 //push_back///////////////////////////////////////////////////////////////////
@@ -1220,12 +1220,12 @@ inline auto push_back(S&& s, C& c, int const i = 0)
 }
 
 template <typename C, typename S, typename T>
-inline auto push_back_n(S&& s, C& c, T const n, int const i = 0)
+inline auto push_back_n(S&& s, C& c, T&& n, int const i = 0)
 {
   return container_push<
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
-  >(::std::forward<S>(s), c, n, i);
+  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
 }
 
 }
