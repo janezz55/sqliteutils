@@ -9,13 +9,13 @@ int main(int, char*[])
   auto const db(::sqlite::open_unique("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
   ::sqlite::exec_multi(db,
+    "DROP TABLE IF EXISTS COMPANY;"
     "CREATE TABLE COMPANY("
     "ID INT PRIMARY KEY     NOT NULL,"
     "NAME           TEXT    NOT NULL,"
     "AGE            INT     NOT NULL,"
     "ADDRESS        CHAR(50),"
     "SALARY         REAL);"
-    "DELETE FROM COMPANY"
   );
 
   ::sqlite::exec_multi(db,
