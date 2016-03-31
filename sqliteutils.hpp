@@ -95,30 +95,30 @@ inline void set(sqlite3_stmt* const stmt, blobpair_t const& v) noexcept
 }
 
 template <int I, typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_floating_point<T>{},
   void
->::type
+>
 set(sqlite3_stmt* const stmt, T const v) noexcept
 {
   sqlite3_bind_double(stmt, I, v);
 }
 
 template <int I, typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
   void
->::type
+>
 set(sqlite3_stmt* const stmt, T const v) noexcept
 {
   sqlite3_bind_int(stmt, I, v);
 }
 
 template <int I, typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
   void
->::type
+>
 set(sqlite3_stmt* const stmt, T const v) noexcept
 {
   sqlite3_bind_int64(stmt, I, v);
@@ -144,9 +144,7 @@ inline void set(sqlite3_stmt* const stmt, charpair_t const& v) noexcept
 }
 
 template <int I, typename T,
-  typename = typename std::enable_if<
-    std::is_same<T, char>{}
-  >::type
+  typename = std::enable_if_t<std::is_same<T, char>{} >
 >
 inline void set(sqlite3_stmt* const stmt, T const* const& v) noexcept
 {
@@ -239,9 +237,7 @@ inline void set(sqlite3_stmt* const stmt, A&& ...args) noexcept
 
 //make_unique/////////////////////////////////////////////////////////////////
 template <typename T,
-  typename = typename std::enable_if<
-    std::is_same<T, char>{}
-  >::type
+  typename = ::std::enable_if_t<std::is_same<T, char>{}>
 >
 inline auto make_unique(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
@@ -278,7 +274,7 @@ inline auto make_unique(sqlite3* const db, ::std::string const& a) noexcept
 
 // forwarders
 template <typename D, typename ...A,
-  typename = typename ::std::enable_if<is_db_t<D>{}>::type
+  typename = ::std::enable_if_t<is_db_t<D>{}>
 >
 inline auto make_unique(D const& db, A&& ...args) noexcept(
   noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
@@ -288,11 +284,7 @@ inline auto make_unique(D const& db, A&& ...args) noexcept(
 }
 
 //make_shared/////////////////////////////////////////////////////////////////
-template <typename T,
-  typename = typename std::enable_if<
-    std::is_same<T, char>{}
-  >::type
->
+template <typename T, typename = std::enable_if_t<::std::is_same<T, char>{}> >
 inline auto make_shared(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
 {
@@ -328,7 +320,7 @@ inline auto make_shared(sqlite3* const db, ::std::string const& a) noexcept
 
 // forwarders
 template <typename D, typename ...A,
-  typename = typename ::std::enable_if<is_db_t<D>{}>::type
+  typename = ::std::enable_if_t<is_db_t<D>{}>
 >
 inline auto make_shared(D const& db, A&& ...args) noexcept(
   noexcept(make_shared(db.get(), ::std::forward<A>(args)...))
@@ -370,7 +362,7 @@ inline auto rexec(sqlite3_stmt* const stmt, A&& ...args) noexcept
 
 // forwarders
 template <int I = 1, typename S, typename ...A,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
+  typename = ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto exec(S const& stmt, A&& ...args) noexcept(
   noexcept(exec(stmt.get(), ::std::forward<A>(args)...))
@@ -380,7 +372,7 @@ inline auto exec(S const& stmt, A&& ...args) noexcept(
 }
 
 template <int I = 1, typename S, typename ...A,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
+  typename = ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto rexec(S const& stmt, A&& ...args) noexcept(
   noexcept(rexec(stmt.get(), ::std::forward<A>(args)...))
@@ -466,50 +458,50 @@ inline auto exec_multi(D const& db, A&& ...args) noexcept(
 
 //get/////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
   T
->::type
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return sqlite3_column_int(stmt, i);
 }
 
 template <typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
   T
->::type
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return sqlite3_column_int64(stmt, i);
 }
 
 template <typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_floating_point<T>{},
   T
->::type
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return sqlite3_column_double(stmt, i);
 }
 
 template <typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_same<T, char const*>{},
   T
->::type
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return reinterpret_cast<char const*>(sqlite3_column_text(stmt, i));
 }
 
 template <typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_same<T, charpair_t>{},
   T
->::type
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return {
@@ -519,10 +511,7 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 }
 
 template <typename T>
-inline typename ::std::enable_if<
-  ::std::is_same<T, ::std::string>{},
-  T
->::type
+inline ::std::enable_if_t<::std::is_same<T, ::std::string>{}, T>
 get(sqlite3_stmt* const stmt, int const i = 0)
 {
   return {
@@ -532,20 +521,14 @@ get(sqlite3_stmt* const stmt, int const i = 0)
 }
 
 template <typename T>
-inline typename ::std::enable_if<
-  ::std::is_same<T, void const*>{},
-  T
->::type
+inline ::std::enable_if_t<::std::is_same<T, void const*>{}, T>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return sqlite3_column_blob(stmt, i);
 }
 
 template <typename T>
-inline typename ::std::enable_if<
-  ::std::is_same<T, blobpair_t>{},
-  T
->::type
+inline ::std::enable_if_t<::std::is_same<T, blobpair_t>{}, T>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return {
@@ -607,7 +590,7 @@ T make_tuple(sqlite3_stmt* const stmt, int const i,
   ::std::index_sequence<Is...> const)
 {
   return T{
-    get<typename ::std::tuple_element<Is, T>::type>(stmt,
+    get<::std::tuple_element_t<Is, T>>(stmt,
       i +
       count_types_n<Is, 0, typename ::std::tuple_element<Is, T>::type...>{}
     )...
@@ -617,11 +600,11 @@ T make_tuple(sqlite3_stmt* const stmt, int const i,
 }
 
 template <typename T>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   is_std_pair<T>{} ||
   is_std_tuple<T>{},
   T
->::type
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
   noexcept(
     make_tuple<T>(stmt, i,
@@ -635,7 +618,7 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
 }
 
 template <typename ...A,
-  typename = typename ::std::enable_if<bool(sizeof...(A) > 1)>::type
+  typename = typename ::std::enable_if_t<bool(sizeof...(A) > 1)>
 >
 ::std::tuple<A...> get(sqlite3_stmt* const stmt, int i = 0) noexcept(
   noexcept(
@@ -651,7 +634,7 @@ template <typename ...A,
 }
 
 template <typename T, typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
+  typename = typename ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto get(S const& stmt, int const i = 0) noexcept(
   noexcept(get<T>(stmt.get(), i))
@@ -688,11 +671,11 @@ inline auto rexecget(S&& stmt, int const i = 0, A&& ...args) noexcept(
 }
 
 template <typename T, int I = 1, typename D, typename A, typename ...B,
-  typename = typename ::std::enable_if<
+  typename = ::std::enable_if_t<
     ::std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
     ::std::is_same<remove_cvr_t<D>, shared_db_t>{} ||
     ::std::is_same<remove_cvr_t<D>, unique_db_t>{}
-  >::type
+  >
 >
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
   noexcept(
@@ -778,7 +761,7 @@ public:
 };
 
 template <typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
+  typename = ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline decltype(auto) operator|(S const& stmt, col&& c) noexcept
 {
@@ -801,9 +784,7 @@ inline auto clear_bindings(sqlite3_stmt* const stmt) noexcept
   return sqlite3_clear_bindings(stmt);
 }
 
-template <typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
 inline auto clear_bindings(S const& stmt) noexcept(
   noexcept(clear_bindings(stmt.get()))
 )
@@ -817,9 +798,7 @@ inline auto column_count(sqlite3_stmt* const stmt) noexcept
   return sqlite3_column_count(stmt);
 }
 
-template <typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
 inline auto column_count(S const& stmt) noexcept(
   noexcept(column_count(stmt.get()))
 )
@@ -833,9 +812,7 @@ inline auto column_name(sqlite3_stmt* const stmt, int const i = 0) noexcept
   return sqlite3_column_name(stmt, i);
 }
 
-template <typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
 inline auto column_name(S const& stmt, int const i = 0) noexcept(
   noexcept(column_name(stmt.get(), i))
 )
@@ -849,9 +826,7 @@ inline auto column_name16(sqlite3_stmt* const stmt, int const i = 0) noexcept
   return static_cast<char16_t const*>(sqlite3_column_name16(stmt, i));
 }
 
-template <typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
 inline auto column_name16(S const& stmt, int const i = 0) noexcept(
   noexcept(column_name16(stmt.get(), i))
 )
@@ -917,9 +892,7 @@ inline auto reset(sqlite3_stmt* const stmt) noexcept
   return sqlite3_reset(stmt);
 }
 
-template <typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
 inline auto reset(S const& stmt) noexcept(
   noexcept(reset(stmt.get()))
 )
@@ -933,9 +906,7 @@ inline auto size(sqlite3_stmt* const stmt, int const i = 0) noexcept
   return sqlite3_column_bytes(stmt, i);
 }
 
-template <typename S,
-  typename = typename ::std::enable_if<is_stmt_t<S>{}>::type
->
+template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
 inline auto size(S const& stmt, int const i = 0) noexcept(
   noexcept(size(stmt.get(), i))
 )
@@ -1056,8 +1027,7 @@ inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
 }
 
 template <typename ...A, typename F, typename S,
-  typename = typename ::std::enable_if<bool(sizeof...(A))>::type
->
+  typename = ::std::enable_if_t<bool(sizeof...(A))> >
 inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
     noexcept(
       foreach_row_apply<A...>(stmt,
@@ -1076,12 +1046,12 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
 }
 
 template <typename F, typename S>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   !::std::is_class<F>{},
   decltype(
     foreach_row_fwd(::std::declval<S>(), ::std::declval<F>(), 0)
   )
->::type
+>
 foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
     noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i))
   )
@@ -1090,14 +1060,14 @@ foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
 }
 
 template <typename F, typename S>
-inline typename ::std::enable_if<
+inline ::std::enable_if_t<
   ::std::is_class<F>{},
   decltype(
     foreach_row_fwd(::std::declval<S>(), ::std::declval<F>(), 0,
       &F::operator()
     )
   )
->::type
+>
 foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
     noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator()))
   )
