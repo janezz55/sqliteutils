@@ -420,11 +420,11 @@ exec_multi(sqlite3* const db, T&& a) noexcept
 template <typename T>
 inline ::std::enable_if_t<
   ::std::is_same<::std::string, ::std::decay_t<T> >{},
-  decltype(exec(::std::declval<sqlite3*>(), ::std::declval<T>()))
+  decltype(exec_multi(::std::declval<sqlite3*>(), ::std::declval<T>()))
 >
 exec_multi(sqlite3* const db, T&& a) noexcept
 {
-  return exec(db, a.c_str());
+  return exec_multi(db, a.c_str());
 }
 
 template <typename A, typename ...B>
