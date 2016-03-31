@@ -392,7 +392,9 @@ inline auto rexec(S const& stmt, A&& ...args) noexcept(
 template <int I = 1, typename T>
 inline ::std::enable_if_t<
   ::std::is_same<char const*, ::std::decay_t<T> >{},
-  int
+  decltype(sqlite3_exec(::std::declval<sqlite3*>(), ::std::declval<T>(),
+    nullptr, nullptr, nullptr)
+  )
 >
 exec(sqlite3* const db, T&& a) noexcept
 {
@@ -402,7 +404,7 @@ exec(sqlite3* const db, T&& a) noexcept
 template <int I = 1, typename T>
 inline ::std::enable_if_t<
   ::std::is_same<::std::string, ::std::decay_t<T> >{},
-  int
+  decltype(exec(::std::declval<sqlite3*>(), ::std::declval<T>()))
 >
 exec(sqlite3* const db, T&& a) noexcept
 {
