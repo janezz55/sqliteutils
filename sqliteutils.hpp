@@ -412,7 +412,7 @@ inline ::std::enable_if_t<
     nullptr, nullptr, nullptr)
   )
 >
-exec(sqlite3* const db, T&& a) noexcept
+exec_multi(sqlite3* const db, T&& a) noexcept
 {
   return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
 }
@@ -422,9 +422,25 @@ inline ::std::enable_if_t<
   ::std::is_same<::std::string, ::std::decay_t<T> >{},
   decltype(exec(::std::declval<sqlite3*>(), ::std::declval<T>()))
 >
-exec(sqlite3* const db, T&& a) noexcept
+exec_multi(sqlite3* const db, T&& a) noexcept
 {
   return exec(db, a.c_str());
+}
+
+template <typename A, typename ...B>
+inline auto exec_multi(sqlite3* const db, A&& a, B&& ...args) noexcept(
+  noexcept(
+    exec_multi(
+      make_unique(db, ::std::forward<A>(a)),
+      ::std::forward<B>(args)...
+    )
+  )
+)
+{
+  return exec_multi(
+    make_unique(db, ::std::forward<A>(a)),
+    ::std::forward<B>(args)...
+  );
 }
 
 // forwarders
@@ -432,6 +448,16 @@ template <typename D, typename ...A,
   typename = ::std::enable_if_t<is_db_t<D>{}>
 >
 inline auto exec(D const& db, A&& ...args) noexcept(
+  noexcept(exec(db.get(), ::std::forward<A>(args)...))
+)
+{
+  return exec(db.get(), ::std::forward<A>(args)...);
+}
+
+template <typename D, typename ...A,
+  typename = ::std::enable_if_t<is_db_t<D>{}>
+>
+inline auto exec_multi(D const& db, A&& ...args) noexcept(
   noexcept(exec(db.get(), ::std::forward<A>(args)...))
 )
 {
