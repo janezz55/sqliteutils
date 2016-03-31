@@ -389,6 +389,26 @@ inline auto rexec(S const& stmt, A&& ...args) noexcept(
   return rexec<I>(stmt.get(), ::std::forward<A>(args)...);
 }
 
+template <typename T>
+inline ::std::enable_if_t<
+  ::std::is_same<char const*, ::std::decay_t<T> >{},
+  int
+>
+exec(sqlite3* const db, T&& a) noexcept
+{
+  return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
+}
+
+template <typename T>
+inline ::std::enable_if_t<
+  ::std::is_same<::std::string, ::std::decay_t<T> >{},
+  int
+>
+exec(sqlite3* const db, T&& a) noexcept
+{
+  return exec(db, a.c_str());
+}
+
 template <int I = 1, typename A, typename ...B>
 inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   noexcept(
@@ -405,19 +425,9 @@ inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   );
 }
 
-inline auto exec(sqlite3* const db, char const* const a) noexcept
-{
-  return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
-}
-
-inline auto exec(sqlite3* const db, ::std::string const& a) noexcept
-{
-  return exec(db, a.c_str());
-}
-
 // forwarders
 template <typename D, typename ...A,
-  typename = typename ::std::enable_if<is_db_t<D>{}>::type
+  typename = ::std::enable_if_t<is_db_t<D>{}>
 >
 inline auto exec(D const& db, A&& ...args) noexcept(
   noexcept(exec(db.get(), ::std::forward<A>(args)...))
