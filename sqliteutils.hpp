@@ -389,7 +389,7 @@ inline auto rexec(S const& stmt, A&& ...args) noexcept(
   return rexec<I>(stmt.get(), ::std::forward<A>(args)...);
 }
 
-template <typename T>
+template <int I = 1, typename T>
 inline ::std::enable_if_t<
   ::std::is_same<char const*, ::std::decay_t<T> >{},
   int
@@ -399,7 +399,7 @@ exec(sqlite3* const db, T&& a) noexcept
   return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
 }
 
-template <typename T>
+template <int I = 1, typename T>
 inline ::std::enable_if_t<
   ::std::is_same<::std::string, ::std::decay_t<T> >{},
   int
