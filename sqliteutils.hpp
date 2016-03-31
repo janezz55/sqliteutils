@@ -434,10 +434,10 @@ template <typename D, typename ...A,
   typename = ::std::enable_if_t<is_db_t<D>{}>
 >
 inline auto exec_multi(D const& db, A&& ...args) noexcept(
-  noexcept(exec(db.get(), ::std::forward<A>(args)...))
+  noexcept(exec_multi(db.get(), ::std::forward<A>(args)...))
 )
 {
-  return exec(db.get(), ::std::forward<A>(args)...);
+  return exec_multi(db.get(), ::std::forward<A>(args)...);
 }
 
 //get/////////////////////////////////////////////////////////////////////////
