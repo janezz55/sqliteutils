@@ -389,28 +389,6 @@ inline auto rexec(S const& stmt, A&& ...args) noexcept(
   return rexec<I>(stmt.get(), ::std::forward<A>(args)...);
 }
 
-template <int I = 1, typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<char const*, ::std::decay_t<T> >{},
-  decltype(sqlite3_exec(::std::declval<sqlite3*>(), ::std::declval<T>(),
-    nullptr, nullptr, nullptr)
-  )
->
-exec(sqlite3* const db, T&& a) noexcept
-{
-  return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
-}
-
-template <int I = 1, typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<::std::string, ::std::decay_t<T> >{},
-  decltype(exec(::std::declval<sqlite3*>(), ::std::declval<T>()))
->
-exec(sqlite3* const db, T&& a) noexcept
-{
-  return exec(db, a.c_str());
-}
-
 template <int I = 1, typename A, typename ...B>
 inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   noexcept(
@@ -425,6 +403,28 @@ inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
     make_unique(db, ::std::forward<A>(a)),
     ::std::forward<B>(args)...
   );
+}
+
+template <typename T>
+inline ::std::enable_if_t<
+  ::std::is_same<char const*, ::std::decay_t<T> >{},
+  decltype(sqlite3_exec(::std::declval<sqlite3*>(), ::std::declval<T>(),
+    nullptr, nullptr, nullptr)
+  )
+>
+exec(sqlite3* const db, T&& a) noexcept
+{
+  return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
+}
+
+template <typename T>
+inline ::std::enable_if_t<
+  ::std::is_same<::std::string, ::std::decay_t<T> >{},
+  decltype(exec(::std::declval<sqlite3*>(), ::std::declval<T>()))
+>
+exec(sqlite3* const db, T&& a) noexcept
+{
+  return exec(db, a.c_str());
 }
 
 // forwarders
