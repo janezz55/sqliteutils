@@ -591,14 +591,17 @@ inline ::std::enable_if_t<
 >
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
   noexcept(
-    make_tuple<T>(stmt, i,
+    make_tuple<T>(stmt,
+      i,
       ::std::make_index_sequence<::std::tuple_size<T>{}>()
     )
   )
 )
 {
-  return make_tuple<T>(stmt, i,
-    ::std::make_index_sequence<::std::tuple_size<T>{}>());
+  return make_tuple<T>(stmt,
+    i,
+    ::std::make_index_sequence<::std::tuple_size<T>{}>()
+  );
 }
 
 template <typename ...A,
