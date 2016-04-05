@@ -605,19 +605,15 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
 }
 
 template <typename ...A,
-  typename = typename ::std::enable_if_t<bool(sizeof...(A) > 1)>
+  typename = ::std::enable_if_t<bool(sizeof...(A) > 1)>
 >
-::std::tuple<A...> get(sqlite3_stmt* const stmt, int i = 0) noexcept(
+auto get(sqlite3_stmt* const stmt, int i = 0) noexcept(
   noexcept(
-    make_tuple<::std::tuple<A...> >(stmt, i,
-      ::std::make_index_sequence<sizeof...(A)>()
-    )
+    get<::std::tuple<A...> >(stmt, i)
   )
 )
 {
-  return make_tuple<::std::tuple<A...> >(stmt, i,
-    ::std::make_index_sequence<sizeof...(A)>()
-  );
+  return get<::std::tuple<A...> >(stmt, i);
 }
 
 template <typename T, typename S,
