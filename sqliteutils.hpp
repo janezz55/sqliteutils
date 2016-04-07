@@ -909,9 +909,54 @@ inline auto bytes(A&& ...args) noexcept(
 namespace
 {
 
-template <typename ...A, typename F, typename S, ::std::size_t ...Is>
+template <typename R, typename ...A>
+struct signature
+{
+};
+
+template <typename R, typename ...A>
+auto extract_signature() noexcept
+{
+  return signature<R, A...>();
+};
+
+template <typename C, typename R, typename ...A>
+auto extract_signature(R (C::* const)(A...)) noexcept
+{
+  return extract_signature<R, A...>();
+}
+
+template <typename C, typename R, typename ...A>
+auto extract_signature(R (C::* const)(A...) const) noexcept
+{
+  return extract_signature<R, A...>();
+}
+
+template <typename R, typename ...A>
+auto extract_signature(R (*const)(A...)) noexcept
+{
+  return extract_signature<R, A...>();
+}
+
+// lambda signatures
+template <typename F>
+auto extract_signature(F const& f) noexcept ->
+  decltype(&F::operator(), extract_signature(&F::operator()))
+{
+  return extract_signature(&F::operator());
+}
+
+// member function and function signatures
+template <typename F>
+auto extract_signature(F const& f) noexcept ->
+  decltype(f(), extract_signature(f))
+{
+  return extract_signature(f);
+}
+
+template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
 inline auto foreach_row_apply(S const& stmt, F const f, int const i,
-  ::std::index_sequence<Is...> const) noexcept(
+  signature<R, A...> const, ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
 {
@@ -950,63 +995,6 @@ inline auto foreach_row_apply(S const& stmt, F const f, int const i,
   return r;
 }
 
-template <typename F, typename S, typename R, typename ...A>
-inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
-  R (* const)(A...)) noexcept(
-    noexcept(
-      foreach_row_apply<A...>(stmt,
-        ::std::forward<F>(f),
-        i,
-        ::std::make_index_sequence<sizeof...(A)>()
-      )
-    )
-  )
-{
-  return foreach_row_apply<A...>(stmt,
-    ::std::forward<F>(f),
-    i,
-    ::std::make_index_sequence<sizeof...(A)>()
-  );
-}
-
-template <typename F, typename S, typename R, typename ...A>
-inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
-  R (F::*)(A...)) noexcept(
-    noexcept(
-      foreach_row_apply<A...>(stmt,
-        ::std::forward<F>(f),
-        i,
-        ::std::make_index_sequence<sizeof...(A)>()
-      )
-    )
-  )
-{
-  return foreach_row_apply<A...>(stmt,
-    ::std::forward<F>(f),
-    i,
-    ::std::make_index_sequence<sizeof...(A)>()
-  );
-}
-
-template <typename F, typename S, typename R, typename ...A>
-inline auto foreach_row_fwd(S const& stmt, F&& f, int const i,
-  R (F::*)(A...) const) noexcept(
-    noexcept(
-      foreach_row_apply<A...>(stmt,
-        ::std::forward<F>(f),
-        i,
-        ::std::make_index_sequence<sizeof...(A)>()
-      )
-    )
-  )
-{
-  return foreach_row_apply<A...>(stmt,
-    ::std::forward<F>(f),
-    i,
-    ::std::make_index_sequence<sizeof...(A)>()
-  );
-}
-
 }
 
 template <typename ...A, typename F, typename S,
@@ -1016,6 +1004,7 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
       foreach_row_apply<A...>(stmt,
         ::std::forward<F>(f),
         i,
+        extract_signature(f),
         ::std::make_index_sequence<sizeof...(A)>()
       )
     )
@@ -1024,38 +1013,9 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
   return foreach_row_apply<A...>(stmt,
     f,
     i,
+    extract_signature(f),
     ::std::make_index_sequence<sizeof...(A)>()
   );
-}
-
-template <typename F, typename S>
-inline ::std::enable_if_t<
-  !::std::is_class<F>{},
-  decltype(
-    foreach_row_fwd(::std::declval<S>(), ::std::declval<F>(), 0)
-  )
->
-foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
-    noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i))
-  )
-{
-  return foreach_row_fwd(stmt, ::std::forward<F>(f), i);
-}
-
-template <typename F, typename S>
-inline ::std::enable_if_t<
-  ::std::is_class<F>{},
-  decltype(
-    foreach_row_fwd(::std::declval<S>(), ::std::declval<F>(), 0,
-      &F::operator()
-    )
-  )
->
-foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
-    noexcept(foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator()))
-  )
-{
-  return foreach_row_fwd(stmt, ::std::forward<F>(f), i, &F::operator());
 }
 
 template <typename F, typename S>
