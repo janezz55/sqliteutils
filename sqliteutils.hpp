@@ -940,7 +940,7 @@ constexpr auto extract_signature(R (*const)(A...)) noexcept
 
 // lambda signatures
 template <typename F>
-constexpr auto extract_signature(F const& f) noexcept ->
+constexpr auto extract_signature(F const&) noexcept ->
   decltype(&F::operator(), extract_signature(&F::operator()))
 {
   return extract_signature(&F::operator());
