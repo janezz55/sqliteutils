@@ -1052,6 +1052,9 @@ inline auto foreach_stmt(S&& s, F const f) noexcept(noexcept(f()))
   return r;
 }
 
+namespace
+{
+
 //container_push//////////////////////////////////////////////////////////////
 template <typename FP, FP fp, typename C, typename S>
 inline auto container_push(S&& s, C& c, int const i)
@@ -1105,6 +1108,8 @@ inline auto container_push(S&& s, C& c, T const n, int const i)
   }
 
   return r;
+}
+
 }
 
 //emplace/////////////////////////////////////////////////////////////////////
