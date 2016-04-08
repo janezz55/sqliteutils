@@ -940,12 +940,12 @@ constexpr auto extract_signature(F const&) noexcept ->
 }
 
 template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
-inline auto foreach_row(S&& s, F const f, int const i,
+inline auto foreach_row(S const s, F const f, int const i,
   signature<R, A...> const, ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
 {
-  decltype(exec(::std::forward<S>(s))) r;
+  decltype(exec(s)) r;
 
   for (;;)
   {
@@ -954,7 +954,7 @@ inline auto foreach_row(S&& s, F const f, int const i,
       case SQLITE_ROW:
         if (f(
             get<::std::remove_const_t<::std::remove_reference_t<A> > >(
-              ::std::forward<S>(s),
+              s,
               i + count_types_n<Is, 0, A...>{}
             )...
           )
