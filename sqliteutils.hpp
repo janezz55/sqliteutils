@@ -981,10 +981,10 @@ inline auto foreach_row(S&& s, F const f, int const i,
 }
 
 template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
-inline auto foreach_row(S&& stmt, F&& f, int const i,
+inline auto foreach_row(S&& s, F&& f, int const i,
   signature<R, A...> const) noexcept(
     noexcept(foreach_row(
-        stmt,
+        ::std::forward<S>(s),
         ::std::forward<F>(f),
         i,
         extract_signature(f),
@@ -993,7 +993,7 @@ inline auto foreach_row(S&& stmt, F&& f, int const i,
     )
   )
 {
-  return foreach_row(::std::forward<S>(stmt),
+  return foreach_row(::std::forward<S>(s),
     ::std::forward<F>(f),
     i,
     extract_signature(f),
