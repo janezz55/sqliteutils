@@ -946,21 +946,21 @@ constexpr auto extract_signature(F const&) noexcept ->
 }
 
 template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
-inline auto foreach_row(S const& stmt, F const f, int const i,
+inline auto foreach_row(S&& s, F const f, int const i,
   signature<R, A...> const, ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
 {
-  decltype(exec(stmt)) r;
+  decltype(exec(::std::forward<S>(s))) r;
 
   for (;;)
   {
-    switch (r = exec(stmt))
+    switch (r = exec(::std::forward<S>(s)))
     {
       case SQLITE_ROW:
         if (f(
             get<::std::remove_const_t<::std::remove_reference_t<A> > >(
-              stmt,
+              ::std::forward<S>(s),
               i + count_types_n<Is, 0, A...>{}
             )...
           )
@@ -1028,13 +1028,13 @@ inline auto foreach_row(S const& stmt, F&& f, int const i = 0) noexcept(
 }
 
 template <typename F, typename S>
-inline auto foreach_stmt(S const& stmt, F const f) noexcept(noexcept(f()))
+inline auto foreach_stmt(S&& s, F const f) noexcept(noexcept(f()))
 {
-  decltype(exec(stmt)) r;
+  decltype(exec(::std::forward<S>(s))) r;
 
   for (;;)
   {
-    switch (r = exec(stmt))
+    switch (r = exec(::std::forward<S>(s)))
     {
       case SQLITE_ROW:
         if (f())
@@ -1125,7 +1125,7 @@ inline auto emplace(S&& s, C& c, int const i = 0)
 }
 
 template <typename C, typename S, typename T>
-inline auto emplace_n(S const& s, C& c, T&& n, int const i = 0)
+inline auto emplace_n(S&& s, C& c, T&& n, int const i = 0)
 {
   return container_push<
     decltype(&C::template emplace<typename C::value_type>),
@@ -1163,7 +1163,7 @@ inline auto insert(S&& s, C& c, int const i = 0)
 }
 
 template <typename C, typename S, typename T>
-inline auto insert_n(S const& s, C& c, T&& n, int const i = 0)
+inline auto insert_n(S&& s, C& c, T&& n, int const i = 0)
 {
   return container_push<
     decltype(&C::template insert<typename C::value_type>),
