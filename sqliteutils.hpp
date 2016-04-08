@@ -915,27 +915,21 @@ struct signature
 };
 
 template <typename R, typename ...A>
-constexpr auto extract_signature() noexcept
+constexpr auto extract_signature(R (*const)(A...)) noexcept
 {
   return signature<R, A...>();
-};
+}
 
 template <typename C, typename R, typename ...A>
 constexpr auto extract_signature(R (C::* const)(A...)) noexcept
 {
-  return extract_signature<R, A...>();
+  return signature<R, A...>();
 }
 
 template <typename C, typename R, typename ...A>
 constexpr auto extract_signature(R (C::* const)(A...) const) noexcept
 {
-  return extract_signature<R, A...>();
-}
-
-template <typename R, typename ...A>
-constexpr auto extract_signature(R (*const)(A...)) noexcept
-{
-  return extract_signature<R, A...>();
+  return signature<R, A...>();
 }
 
 template <typename F>
