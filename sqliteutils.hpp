@@ -938,20 +938,11 @@ constexpr auto extract_signature(R (*const)(A...)) noexcept
   return extract_signature<R, A...>();
 }
 
-// lambda signatures
 template <typename F>
 constexpr auto extract_signature(F const& f) noexcept ->
   decltype(&F::operator(), extract_signature(&F::operator()))
 {
   return extract_signature(&F::operator());
-}
-
-// member function and function signatures
-template <typename F>
-constexpr auto extract_signature(F const& f) noexcept ->
-  decltype(f(), extract_signature(f))
-{
-  return extract_signature(f);
 }
 
 template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
