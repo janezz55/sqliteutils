@@ -443,7 +443,8 @@ inline auto exec_multi(D const& db, A&& ...args) noexcept(
 //get/////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline ::std::enable_if_t<
-  ::std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
+  ::std::is_integral<::std::decay_t<T> >{} &&
+  (sizeof(T) <= sizeof(int)),
   T
 >
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
@@ -453,7 +454,8 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 
 template <typename T>
 inline ::std::enable_if_t<
-  ::std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
+  ::std::is_integral<::std::decay_t<T> >{} &&
+  (sizeof(T) > sizeof(int)),
   T
 >
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
@@ -463,7 +465,7 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 
 template <typename T>
 inline ::std::enable_if_t<
-  ::std::is_floating_point<T>{},
+  ::std::is_floating_point<::std::decay_t<T> >{},
   T
 >
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
@@ -473,7 +475,7 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 
 template <typename T>
 inline ::std::enable_if_t<
-  ::std::is_same<T, char const*>{},
+  ::std::is_same<::std::decay_t<T>, char const*>{},
   T
 >
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
@@ -483,7 +485,7 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 
 template <typename T>
 inline ::std::enable_if_t<
-  ::std::is_same<T, charpair_t>{},
+  ::std::is_same<::std::decay_t<T>, charpair_t>{},
   T
 >
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
@@ -495,7 +497,10 @@ get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<::std::is_same<T, ::std::string>{}, T>
+inline ::std::enable_if_t<
+  ::std::is_same<::std::decay_t<T>, ::std::string>{},
+  T
+>
 get(sqlite3_stmt* const stmt, int const i = 0)
 {
   return {
@@ -505,14 +510,20 @@ get(sqlite3_stmt* const stmt, int const i = 0)
 }
 
 template <typename T>
-inline ::std::enable_if_t<::std::is_same<T, void const*>{}, T>
+inline ::std::enable_if_t<
+  ::std::is_same<T, void const*>{},
+  T
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return sqlite3_column_blob(stmt, i);
 }
 
 template <typename T>
-inline ::std::enable_if_t<::std::is_same<T, blobpair_t>{}, T>
+inline ::std::enable_if_t<
+  ::std::is_same<T, blobpair_t>{},
+  T
+>
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept
 {
   return {
