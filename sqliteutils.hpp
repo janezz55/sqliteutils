@@ -235,6 +235,39 @@ inline void set(sqlite3_stmt* const stmt, A&& ...args) noexcept
   );
 }
 
+template <int I = 1, typename S, typename ...A,
+  typename = ::std::enable_if_t<is_stmt_t<S>{}>
+>
+inline auto set(S const& s, A&& ...args) noexcept(
+  noexcept(set(s.get(), ::std::forward<A>(args)...))
+)
+{
+  return set(s.get(), ::std::forward<A>(args)...);
+}
+
+//rset////////////////////////////////////////////////////////////////////////
+template <int I = 1, typename ...A>
+inline void rset(sqlite3_stmt* const stmt, A&& ...args) noexcept
+{
+  sqlite3_reset(stmt);
+
+  detail::set<I>(stmt,
+    ::std::make_index_sequence<sizeof...(A)>(),
+    ::std::forward<A>(args)...
+  );
+}
+
+template <int I = 1, typename S, typename ...A,
+  typename = ::std::enable_if_t<is_stmt_t<S>{}>
+>
+inline auto rset(S const& s, A&& ...args) noexcept(
+  noexcept(rset(s.get(), ::std::forward<A>(args)...))
+)
+{
+  return rset(s.get(), ::std::forward<A>(args)...);
+}
+
+
 //make_unique/////////////////////////////////////////////////////////////////
 template <typename T,
   typename = ::std::enable_if_t<std::is_same<T, char>{}>
@@ -967,12 +1000,9 @@ inline auto foreach_row(S&& s, F const f, int const i,
     switch (r = exec(::std::forward<S>(s)))
     {
       case SQLITE_ROW:
-        if (f(
-            get<::std::remove_const_t<::std::remove_reference_t<A> > >(
-              ::std::forward<S>(s),
-              i + count_types_n<Is, 0, A...>{}
-            )...
-          )
+        if (f(get<A>(
+          ::std::forward<S>(s),
+          i + count_types_n<Is, 0, A...>{})...)
         )
         {
           continue;
