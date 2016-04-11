@@ -52,7 +52,7 @@ using blobpair_t = ::std::pair<void const* const, sqlite3_uint64 const>;
 
 using charpair_t = ::std::pair<char const* const, sqlite3_uint64 const>;
 
-using char16pair_t = ::std::pair<char16_t const* const, sqlite3_uint64 const>;
+using charpair16_t = ::std::pair<char16_t const* const, sqlite3_uint64 const>;
 
 using nullpair_t = ::std::pair<::std::nullptr_t const, sqlite3_uint64 const>;
 
@@ -173,7 +173,7 @@ inline void set(sqlite3_stmt* const stmt, char16_t const* v) noexcept
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const stmt, char16pair_t const& v) noexcept
+inline void set(sqlite3_stmt* const stmt, charpair16_t const& v) noexcept
 {
   sqlite3_bind_text64(stmt, I, reinterpret_cast<char const*>(v.first),
     v.second, SQLITE_TRANSIENT, SQLITE_UTF16);
@@ -591,6 +591,30 @@ struct count_types<A> : ::std::integral_constant<int, 1>
 {
 };
 
+template <>
+struct count_types<blobpair_t> :
+  ::std::integral_constant<int, 1>
+{
+};
+
+template <>
+struct count_types<charpair_t> :
+  ::std::integral_constant<int, 1>
+{
+};
+
+template <>
+struct count_types<charpair16_t> :
+  ::std::integral_constant<int, 1>
+{
+};
+
+template <>
+struct count_types<nullpair_t> :
+  ::std::integral_constant<int, 1>
+{
+};
+
 template <typename A, typename B>
 struct count_types<::std::pair<A, B> > :
   ::std::integral_constant<int, count_types<A>{} + count_types<B>{}>
@@ -632,8 +656,8 @@ inline ::std::enable_if_t<
   (is_std_pair<remove_cvr_t<T> >{} ||
   is_std_tuple<remove_cvr_t<T> >{}) &&
   !::std::is_same<remove_cvr_t<T>, blobpair_t>{} &&
-  !::std::is_same<remove_cvr_t<T>, char16pair_t>{} &&
   !::std::is_same<remove_cvr_t<T>, charpair_t>{} &&
+  !::std::is_same<remove_cvr_t<T>, charpair16_t>{} &&
   !::std::is_same<remove_cvr_t<T>, nullpair_t>{},
   T
 >
