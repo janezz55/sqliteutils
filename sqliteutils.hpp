@@ -596,8 +596,12 @@ T make_tuple(sqlite3_stmt* const stmt, int const i,
 
 template <typename T>
 inline ::std::enable_if_t<
-  is_std_pair<T>{} ||
-  is_std_tuple<T>{},
+  (is_std_pair<remove_cvr_t<T> >{} ||
+  is_std_tuple<remove_cvr_t<T> >{}) &&
+  !::std::is_same<remove_cvr_t<T>, blobpair_t>{},
+  !::std::is_same<remove_cvr_t<T>, char16pair_t>{},
+  !::std::is_same<remove_cvr_t<T>, charpair_t>{},
+  !::std::is_same<remove_cvr_t<T>, nullpair_t>{}
   T
 >
 get(sqlite3_stmt* const stmt, int const i = 0) noexcept(
