@@ -418,15 +418,13 @@ template <int I = 1, typename A, typename ...B>
 inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   noexcept(
     exec<I>(
-      make_unique(db, ::std::forward<A>(a)),
-      ::std::forward<B>(args)...
+      make_unique(db, ::std::forward<A>(a)), ::std::forward<B>(args)...
     )
   )
 )
 {
   return exec<I>(
-    make_unique(db, ::std::forward<A>(a)),
-    ::std::forward<B>(args)...
+    make_unique(db, ::std::forward<A>(a)), ::std::forward<B>(args)...
   );
 }
 
