@@ -1096,6 +1096,24 @@ inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
 }
 
 template <typename F, typename S>
+inline void foreach_stmt(sqlite3* const db, F const f) noexcept(noexcept(f()))
+{
+  for (auto const stmt(sqlite3_next_stmt(db, {}));
+    stmt && f(stmt);
+    stmt = sqlite3_next_stmt(db, stmt));
+}
+
+template <typename D, typename ...A,
+  typename = ::std::enable_if_t<is_db_t<D>{}>
+>
+inline auto foreach_stmt(D const& db, A&& ...args) noexcept(
+  noexcept(foreach_stmt(db.get(), ::std::forward<A>(args)...))
+)
+{
+  return foreach_stmt(db.get(), ::std::forward<A>(args)...);
+}
+
+template <typename F, typename S>
 inline auto foreach_stmt(S&& s, F const f) noexcept(noexcept(f()))
 {
   decltype(exec(::std::forward<S>(s))) r;
