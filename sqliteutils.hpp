@@ -811,6 +811,14 @@ public:
       sqlite3_column_bytes(stmt_, i_)
     };
   }
+
+  operator charpair16_t() const && noexcept
+  {
+    return {
+      static_cast<char16_t const*>(sqlite3_column_text16(stmt_, i_)),
+      sqlite3_column_bytes(stmt_, i_)
+    };
+  }
 };
 
 template <typename S,
