@@ -1095,7 +1095,7 @@ inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
   );
 }
 
-template <typename F, typename S>
+template <typename F>
 inline void foreach_stmt(sqlite3* const db, F const f) noexcept(noexcept(f()))
 {
   for (auto const stmt(sqlite3_next_stmt(db, {}));
