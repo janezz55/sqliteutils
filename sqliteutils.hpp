@@ -1096,9 +1096,11 @@ inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
 }
 
 template <typename F>
-inline void foreach_stmt(sqlite3* const db, F const f) noexcept(noexcept(f()))
+inline void foreach_stmt(sqlite3* const db, F const f) noexcept(
+  noexcept(f(::std::declval<sqlite3_stmt*>()))
+)
 {
-  for (auto const stmt(sqlite3_next_stmt(db, {}));
+  for (auto stmt(sqlite3_next_stmt(db, {}));
     stmt && f(stmt);
     stmt = sqlite3_next_stmt(db, stmt));
 }
@@ -1279,6 +1281,27 @@ inline auto push_back_n(S&& s, C& c, T&& n, int const i = 0)
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
   >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
+}
+
+//reset_all///////////////////////////////////////////////////////////////////
+inline void reset_all(sqlite3* const db) noexcept
+{
+  ::sqlite::foreach_stmt(db,
+    [](auto const s) noexcept
+    {
+      ::sqlite::reset(s);
+
+      return true;
+    }
+  );
+}
+
+template <typename D,
+  typename = ::std::enable_if_t<is_db_t<D>{}>
+>
+inline auto reset_all(D const& db) noexcept(noexcept(reset_all(db.get())))
+{
+  return reset_all(db.get());
 }
 
 }
