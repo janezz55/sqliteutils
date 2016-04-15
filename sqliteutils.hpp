@@ -1330,6 +1330,7 @@ inline auto reset_all_busy(D const& db) noexcept(
 {
   return reset_all_busy(db.get());
 }
+
 }
 
 #endif // SQLITEUTILS_HPP
