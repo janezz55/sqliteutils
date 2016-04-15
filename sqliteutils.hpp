@@ -1304,6 +1304,32 @@ inline auto reset_all(D const& db) noexcept(noexcept(reset_all(db.get())))
   return reset_all(db.get());
 }
 
+//reset_all_busy//////////////////////////////////////////////////////////////
+inline void reset_all_busy(sqlite3* const db) noexcept
+{
+  ::sqlite::foreach_stmt(db,
+    [](auto const s) noexcept
+    {
+      if (sqlite3_stmt_busy(s))
+      {
+        ::sqlite::reset(s);
+      }
+      // else do nothing
+
+      return true;
+    }
+  );
+}
+
+template <typename D,
+  typename = ::std::enable_if_t<is_db_t<D>{}>
+>
+inline auto reset_all_busy(D const& db) noexcept(
+  noexcept(reset_all_busy(db.get()))
+)
+{
+  return reset_all_busy(db.get());
+}
 }
 
 #endif // SQLITEUTILS_HPP
