@@ -28,9 +28,6 @@ int main(int, char*[])
     "AGE            INT     NOT NULL,"
     "ADDRESS        CHAR(50),"
     "SALARY         REAL);"
-  );
-
-  ::sqlite::exec_multi(db,
     "INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)"
     "VALUES(1, 'Paul', 32, 'California', 20000.00);"
     "INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)"
