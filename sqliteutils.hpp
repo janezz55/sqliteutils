@@ -670,9 +670,7 @@ template <typename ...A,
   typename = ::std::enable_if_t<bool(sizeof...(A) > 1)>
 >
 auto get(sqlite3_stmt* const s, int i = 0) noexcept(
-  noexcept(
-    get<::std::tuple<A...> >(s, i)
-  )
+  noexcept(get<::std::tuple<A...> >(s, i))
 )
 {
   return get<::std::tuple<A...> >(s, i);
@@ -946,9 +944,7 @@ inline auto reset(sqlite3_stmt* const s) noexcept
 }
 
 template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
-inline auto reset(S const& s) noexcept(
-  noexcept(reset(s.get()))
-)
+inline auto reset(S const& s) noexcept(noexcept(reset(s.get())))
 {
   return reset(s.get());
 }
