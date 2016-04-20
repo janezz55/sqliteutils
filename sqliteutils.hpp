@@ -267,7 +267,6 @@ inline auto rset(S const& s, A&& ...args) noexcept(
   return rset(s.get(), ::std::forward<A>(args)...);
 }
 
-
 //make_unique/////////////////////////////////////////////////////////////////
 template <typename T,
   typename = ::std::enable_if_t<std::is_same<T, char>{}>
