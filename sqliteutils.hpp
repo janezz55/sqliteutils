@@ -829,6 +829,14 @@ inline auto changes(sqlite3* const db) noexcept
   return sqlite3_changes(db);
 }
 
+template <typename D,
+  typename = ::std::enable_if_t<is_db_t<D>{}>
+>
+inline auto changes(D const& db) noexcept(noexcept(changes(db.get())))
+{
+  return changes(db.get());
+}
+
 //clear_bindings//////////////////////////////////////////////////////////////
 inline auto clear_bindings(sqlite3_stmt* const s) noexcept
 {
