@@ -694,8 +694,12 @@ inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
   )
 )
 {
+#ifndef NDEBUG
   auto const r(exec<I>(::std::forward<S>(s), ::std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
+#else
+  exec<I>(::std::forward<S>(s), ::std::forward<A>(args)...);
+#endif // NDEBUG
 
   return get<T>(s, i);
 }
@@ -707,8 +711,12 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
   )
 )
 {
+#ifndef NDEBUG
   auto const r(rexec<I>(::std::forward<S>(s), ::std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
+#else
+  rexec<I>(::std::forward<S>(s), ::std::forward<A>(args)...);
+#endif // NDEBUG
 
   return get<T>(s, i);
 }
