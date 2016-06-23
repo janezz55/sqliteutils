@@ -361,7 +361,7 @@ inline auto make_shared(D const& db, A&& ...args) noexcept(
 }
 
 //exec////////////////////////////////////////////////////////////////////////
-template <int I = 1>
+template <int I = 0>
 inline auto exec(sqlite3_stmt* const s) noexcept
 {
   return sqlite3_step(s);
@@ -375,7 +375,7 @@ inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
   return exec(s);
 }
 
-template <int I = 1>
+template <int I = 0>
 inline auto rexec(sqlite3_stmt* const s) noexcept
 {
   sqlite3_reset(s);
@@ -383,7 +383,7 @@ inline auto rexec(sqlite3_stmt* const s) noexcept
   return sqlite3_step(s);
 }
 
-template <int I = 1, typename ...A>
+template <int I = 0, typename ...A>
 inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   sqlite3_reset(s);
@@ -392,7 +392,7 @@ inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 }
 
 // forwarders
-template <int I = 1, typename S, typename ...A,
+template <int I = 0, typename S, typename ...A,
   typename = ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto exec(S const& s, A&& ...args) noexcept(
@@ -402,7 +402,7 @@ inline auto exec(S const& s, A&& ...args) noexcept(
   return exec<I>(s.get(), ::std::forward<A>(args)...);
 }
 
-template <int I = 1, typename S, typename ...A,
+template <int I = 0, typename S, typename ...A,
   typename = ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto rexec(S const& s, A&& ...args) noexcept(
@@ -412,7 +412,7 @@ inline auto rexec(S const& s, A&& ...args) noexcept(
   return rexec<I>(s.get(), ::std::forward<A>(args)...);
 }
 
-template <int I = 1, typename A, typename ...B>
+template <int I = 0, typename A, typename ...B>
 inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   noexcept(
     exec<I>(
