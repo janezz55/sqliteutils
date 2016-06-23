@@ -225,45 +225,45 @@ using is_stmt_t =
   >;
 
 //set/////////////////////////////////////////////////////////////////////////
-template <int I = 1, typename ...A>
+template <int I = 0, typename ...A>
 inline void set(sqlite3_stmt* const s, A&& ...args) noexcept
 {
-  detail::set<I>(s,
+  detail::set<I + 1>(s,
     ::std::make_index_sequence<sizeof...(A)>(),
     ::std::forward<A>(args)...
   );
 }
 
-template <int I = 1, typename S, typename ...A,
+template <int I = 0, typename S, typename ...A,
   typename = ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto set(S const& s, A&& ...args) noexcept(
   noexcept(set(s.get(), ::std::forward<A>(args)...))
 )
 {
-  return set(s.get(), ::std::forward<A>(args)...);
+  return set<I>(s.get(), ::std::forward<A>(args)...);
 }
 
 //rset////////////////////////////////////////////////////////////////////////
-template <int I = 1, typename ...A>
+template <int I = 0, typename ...A>
 inline void rset(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   sqlite3_reset(s);
 
-  detail::set<I>(s,
+  detail::set<I + 1>(s,
     ::std::make_index_sequence<sizeof...(A)>(),
     ::std::forward<A>(args)...
   );
 }
 
-template <int I = 1, typename S, typename ...A,
+template <int I = 0, typename S, typename ...A,
   typename = ::std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto rset(S const& s, A&& ...args) noexcept(
   noexcept(rset(s.get(), ::std::forward<A>(args)...))
 )
 {
-  return rset(s.get(), ::std::forward<A>(args)...);
+  return rset<I>(s.get(), ::std::forward<A>(args)...);
 }
 
 //make_unique/////////////////////////////////////////////////////////////////
@@ -367,7 +367,7 @@ inline auto exec(sqlite3_stmt* const s) noexcept
   return sqlite3_step(s);
 }
 
-template <int I = 1, typename ...A>
+template <int I = 0, typename ...A>
 inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   set<I>(s, ::std::forward<A>(args)...);
