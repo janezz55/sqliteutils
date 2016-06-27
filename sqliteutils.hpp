@@ -687,7 +687,7 @@ inline auto get(S const& s, int const i = 0) noexcept(
 }
 
 //execget/////////////////////////////////////////////////////////////////////
-template <typename T, int I = 1, typename S, typename ...A>
+template <typename T, int I = 0, typename S, typename ...A>
 inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
   noexcept(exec<I>(::std::forward<S>(s), ::std::forward<A>(args)...),
     get<T>(s, i)
@@ -704,7 +704,7 @@ inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
   return get<T>(s, i);
 }
 
-template <typename T, int I = 1, typename S, typename ...A>
+template <typename T, int I = 0, typename S, typename ...A>
 inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
   noexcept(rexec<I>(::std::forward<S>(s), ::std::forward<A>(args)...),
     get<T>(s, i)
@@ -721,7 +721,7 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
   return get<T>(s, i);
 }
 
-template <typename T, int I = 1, typename D, typename A, typename ...B,
+template <typename T, int I = 0, typename D, typename A, typename ...B,
   typename = ::std::enable_if_t<
     ::std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
     ::std::is_same<remove_cvr_t<D>, shared_db_t>{} ||
