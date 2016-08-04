@@ -999,6 +999,7 @@ struct signature
 template <typename F>
 struct remove_cv_seq;
 
+//
 template <typename R, typename ...A>
 struct remove_cv_seq<R(A...)>
 {
@@ -1019,6 +1020,57 @@ struct remove_cv_seq<R(A...) volatile>
 
 template <typename R, typename ...A>
 struct remove_cv_seq<R(A...) const volatile>
+{
+  using type = R(A...);
+};
+
+//
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) &>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const &>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) volatile &>
+{
+  using type = R(A...);
+};
+
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const volatile &>
+{
+  using type = R(A...);
+};
+
+//
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) &&>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const &&>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) volatile &&>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const volatile &&>
 {
   using type = R(A...);
 };
