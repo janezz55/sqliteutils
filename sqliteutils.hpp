@@ -991,27 +991,48 @@ inline auto bytes(A&& ...args) noexcept(
 namespace
 {
 
-template <typename R, typename ...A>
+template <typename>
 struct signature
 {
 };
 
+template <typename F>
+struct remove_cv_seq;
+
 template <typename R, typename ...A>
-constexpr auto extract_signature(R (*const)(A...)) noexcept
+struct remove_cv_seq<R(A...)>
 {
-  return signature<R, A...>();
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) volatile>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const volatile>
+{
+  using type = R(A...);
+};
+
+template <typename F>
+constexpr auto extract_signature(F* const) noexcept
+{
+  return signature<typename remove_cv_seq<F>::type>();
 }
 
-template <typename C, typename R, typename ...A>
-constexpr auto extract_signature(R (C::* const)(A...)) noexcept
+template <typename C, typename F>
+constexpr auto extract_signature(F C::* const) noexcept
 {
-  return signature<R, A...>();
-}
-
-template <typename C, typename R, typename ...A>
-constexpr auto extract_signature(R (C::* const)(A...) const) noexcept
-{
-  return signature<R, A...>();
+  return signature<typename remove_cv_seq<F>::type>();
 }
 
 template <typename F>
@@ -1023,7 +1044,7 @@ constexpr auto extract_signature(F const&) noexcept ->
 
 template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
 inline auto foreach_row(S&& s, F const f, int const i,
-  signature<R, A...> const, ::std::index_sequence<Is...> const) noexcept(
+  signature<R(A...)> const, ::std::index_sequence<Is...> const) noexcept(
     noexcept(f(::std::declval<A>()...))
   )
 {
@@ -1061,7 +1082,7 @@ inline auto foreach_row(S&& s, F const f, int const i,
 
 template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
 inline auto foreach_row(S&& s, F&& f, int const i,
-  signature<R, A...> const) noexcept(
+  signature<R(A...)> const) noexcept(
     noexcept(foreach_row(::std::forward<S>(s),
         ::std::forward<F>(f),
         i,
