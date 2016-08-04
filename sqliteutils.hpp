@@ -1043,7 +1043,6 @@ struct remove_cv_seq<R(A...) volatile &>
   using type = R(A...);
 };
 
-
 template <typename R, typename ...A>
 struct remove_cv_seq<R(A...) const volatile &>
 {
