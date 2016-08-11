@@ -1075,19 +1075,19 @@ struct remove_cv_seq<R(A...) const volatile &&>
 };
 
 template <typename F>
-constexpr auto extract_signature(F* const) noexcept
+constexpr inline auto extract_signature(F* const) noexcept
 {
   return signature<typename remove_cv_seq<F>::type>();
 }
 
 template <typename C, typename F>
-constexpr auto extract_signature(F C::* const) noexcept
+constexpr inline auto extract_signature(F C::* const) noexcept
 {
   return signature<typename remove_cv_seq<F>::type>();
 }
 
 template <typename F>
-constexpr auto extract_signature(F const&) noexcept ->
+constexpr inline auto extract_signature(F const&) noexcept ->
   decltype(&F::operator(), extract_signature(&F::operator()))
 {
   return extract_signature(&F::operator());
