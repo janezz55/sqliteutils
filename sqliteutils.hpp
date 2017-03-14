@@ -29,10 +29,6 @@
 # define SQLITEUTILS_HPP
 # pragma once
 
-#if __cplusplus < 201402L
-# error "You need a c++14 compiler"
-#endif // __cplusplus
-
 #include <cassert>
 
 #include <memory>
@@ -45,16 +41,16 @@
 
 #include "sqlite3.h"
 
-namespace sqlite
+namespace squ
 {
 
-using blobpair_t = ::std::pair<void const* const, sqlite3_uint64 const>;
+using blobpair_t = std::pair<void const* const, sqlite3_uint64 const>;
 
-using charpair_t = ::std::pair<char const* const, sqlite3_uint64 const>;
+using charpair_t = std::pair<char const* const, sqlite3_uint64 const>;
 
-using charpair16_t = ::std::pair<char16_t const* const, sqlite3_uint64 const>;
+using charpair16_t = std::pair<char16_t const* const, sqlite3_uint64 const>;
 
-using nullpair_t = ::std::pair<::std::nullptr_t const, sqlite3_uint64 const>;
+using nullpair_t = std::pair<std::nullptr_t const, sqlite3_uint64 const>;
 
 namespace
 {
@@ -95,8 +91,8 @@ inline void set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
 }
 
 template <int I, typename T>
-inline ::std::enable_if_t<
-  ::std::is_floating_point<T>{},
+inline std::enable_if_t<
+  std::is_floating_point<T>{},
   void
 >
 set(sqlite3_stmt* const s, T const v) noexcept
@@ -105,8 +101,8 @@ set(sqlite3_stmt* const s, T const v) noexcept
 }
 
 template <int I, typename T>
-inline ::std::enable_if_t<
-  ::std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
+inline std::enable_if_t<
+  std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
   void
 >
 set(sqlite3_stmt* const s, T const v) noexcept
@@ -115,8 +111,8 @@ set(sqlite3_stmt* const s, T const v) noexcept
 }
 
 template <int I, typename T>
-inline ::std::enable_if_t<
-  ::std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
+inline std::enable_if_t<
+  std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
   void
 >
 set(sqlite3_stmt* const s, T const v) noexcept
@@ -125,12 +121,12 @@ set(sqlite3_stmt* const s, T const v) noexcept
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, ::std::nullptr_t const) noexcept
+inline void set(sqlite3_stmt* const s, std::nullptr_t const) noexcept
 {
   sqlite3_bind_null(s, I);
 }
 
-template <int I, ::std::size_t N>
+template <int I, std::size_t N>
 inline void set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
 {
   sqlite3_bind_text64(s, I, v, N, SQLITE_STATIC, SQLITE_UTF8);
@@ -151,13 +147,13 @@ inline void set(sqlite3_stmt* const s, T const* const& v) noexcept
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, ::std::string const& v) noexcept
+inline void set(sqlite3_stmt* const s, std::string const& v) noexcept
 {
   sqlite3_bind_text64(s, I, v.c_str(), v.size(), SQLITE_TRANSIENT,
     SQLITE_UTF8);
 }
 
-template <int I, ::std::size_t N>
+template <int I, std::size_t N>
 inline void set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
 {
   sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(&*v), N,
@@ -184,8 +180,8 @@ inline void set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
   sqlite3_bind_zeroblob64(s, I, v.second);
 }
 
-template <int I, ::std::size_t ...Is, typename ...A>
-void set(sqlite3_stmt* const s, ::std::index_sequence<Is...> const,
+template <int I, std::size_t ...Is, typename ...A>
+void set(sqlite3_stmt* const s, std::index_sequence<Is...> const,
   A&& ...args) noexcept(
     noexcept(swallow{(set<I + Is>(s, args), 0)...})
   )
@@ -195,33 +191,33 @@ void set(sqlite3_stmt* const s, ::std::index_sequence<Is...> const,
 
 }
 
-using shared_db_t = ::std::shared_ptr<sqlite3>;
+using shared_db_t = std::shared_ptr<sqlite3>;
 
-using unique_db_t = ::std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
+using unique_db_t = std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
 
 template <typename T>
-using remove_cvr_t = ::std::remove_cv_t<::std::remove_reference_t<T> >;
+using remove_cvr_t = std::remove_cv_t<std::remove_reference_t<T> >;
 
 template <typename T>
 using is_db_t = 
-  ::std::integral_constant<
+  std::integral_constant<
     bool,
-    ::std::is_same<remove_cvr_t<T>, shared_db_t>{} ||
-    ::std::is_same<remove_cvr_t<T>, unique_db_t>{}
+    std::is_same<remove_cvr_t<T>, shared_db_t>{} ||
+    std::is_same<remove_cvr_t<T>, unique_db_t>{}
   >;
 
-using shared_stmt_t = ::std::shared_ptr<sqlite3_stmt>;
+using shared_stmt_t = std::shared_ptr<sqlite3_stmt>;
 
-using unique_stmt_t = ::std::unique_ptr<sqlite3_stmt,
+using unique_stmt_t = std::unique_ptr<sqlite3_stmt,
   detail::sqlite3_stmt_deleter
 >;
 
 template <typename T>
 using is_stmt_t = 
-  ::std::integral_constant<
+  std::integral_constant<
     bool,
-    ::std::is_same<remove_cvr_t<T>, shared_stmt_t>{} ||
-    ::std::is_same<remove_cvr_t<T>, unique_stmt_t>{}
+    std::is_same<remove_cvr_t<T>, shared_stmt_t>{} ||
+    std::is_same<remove_cvr_t<T>, unique_stmt_t>{}
   >;
 
 //set/////////////////////////////////////////////////////////////////////////
@@ -229,19 +225,19 @@ template <int I = 0, typename ...A>
 inline void set(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   detail::set<I + 1>(s,
-    ::std::make_index_sequence<sizeof...(A)>(),
-    ::std::forward<A>(args)...
+    std::make_index_sequence<sizeof...(A)>(),
+    std::forward<A>(args)...
   );
 }
 
 template <int I = 0, typename S, typename ...A,
-  typename = ::std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto set(S const& s, A&& ...args) noexcept(
-  noexcept(set(s.get(), ::std::forward<A>(args)...))
+  noexcept(set(s.get(), std::forward<A>(args)...))
 )
 {
-  return set<I>(s.get(), ::std::forward<A>(args)...);
+  return set<I>(s.get(), std::forward<A>(args)...);
 }
 
 //rset////////////////////////////////////////////////////////////////////////
@@ -251,24 +247,24 @@ inline void rset(sqlite3_stmt* const s, A&& ...args) noexcept
   sqlite3_reset(s);
 
   detail::set<I + 1>(s,
-    ::std::make_index_sequence<sizeof...(A)>(),
-    ::std::forward<A>(args)...
+    std::make_index_sequence<sizeof...(A)>(),
+    std::forward<A>(args)...
   );
 }
 
 template <int I = 0, typename S, typename ...A,
-  typename = ::std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto rset(S const& s, A&& ...args) noexcept(
-  noexcept(rset(s.get(), ::std::forward<A>(args)...))
+  noexcept(rset(s.get(), std::forward<A>(args)...))
 )
 {
-  return rset<I>(s.get(), ::std::forward<A>(args)...);
+  return rset<I>(s.get(), std::forward<A>(args)...);
 }
 
 //make_unique/////////////////////////////////////////////////////////////////
 template <typename T,
-  typename = ::std::enable_if_t<std::is_same<T, char>{}>
+  typename = std::enable_if_t<std::is_same<T, char>{}>
 >
 inline auto make_unique(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
@@ -284,7 +280,7 @@ inline auto make_unique(sqlite3* const db, T const* const& a,
   return unique_stmt_t(s);
 }
 
-template <::std::size_t N>
+template <std::size_t N>
 inline auto make_unique(sqlite3* const db, char const (&a)[N]) noexcept
 {
   sqlite3_stmt* s;
@@ -298,24 +294,24 @@ inline auto make_unique(sqlite3* const db, char const (&a)[N]) noexcept
   return unique_stmt_t(s);
 }
 
-inline auto make_unique(sqlite3* const db, ::std::string const& a) noexcept
+inline auto make_unique(sqlite3* const db, std::string const& a) noexcept
 {
   return make_unique(db, a.c_str(), a.size());
 }
 
 // forwarders
 template <typename D, typename ...A,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto make_unique(D const& db, A&& ...args) noexcept(
-  noexcept(make_unique(db.get(), ::std::forward<A>(args)...))
+  noexcept(make_unique(db.get(), std::forward<A>(args)...))
 )
 {
-  return make_unique(db.get(), ::std::forward<A>(args)...);
+  return make_unique(db.get(), std::forward<A>(args)...);
 }
 
 //make_shared/////////////////////////////////////////////////////////////////
-template <typename T, typename = std::enable_if_t<::std::is_same<T, char>{}> >
+template <typename T, typename = std::enable_if_t<std::is_same<T, char>{}> >
 inline auto make_shared(sqlite3* const db, T const* const& a,
   int const size = -1) noexcept
 {
@@ -330,7 +326,7 @@ inline auto make_shared(sqlite3* const db, T const* const& a,
   return shared_stmt_t(s, detail::sqlite3_stmt_deleter());
 }
 
-template <::std::size_t N>
+template <std::size_t N>
 inline auto make_shared(sqlite3* const db, char const (&a)[N]) noexcept
 {
   sqlite3_stmt* s;
@@ -344,20 +340,20 @@ inline auto make_shared(sqlite3* const db, char const (&a)[N]) noexcept
   return shared_stmt_t(s, detail::sqlite3_stmt_deleter());
 }
 
-inline auto make_shared(sqlite3* const db, ::std::string const& a) noexcept
+inline auto make_shared(sqlite3* const db, std::string const& a) noexcept
 {
   return make_shared(db, a.c_str(), a.size());
 }
 
 // forwarders
 template <typename D, typename ...A,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto make_shared(D const& db, A&& ...args) noexcept(
-  noexcept(make_shared(db.get(), ::std::forward<A>(args)...))
+  noexcept(make_shared(db.get(), std::forward<A>(args)...))
 )
 {
-  return make_shared(db.get(), ::std::forward<A>(args)...);
+  return make_shared(db.get(), std::forward<A>(args)...);
 }
 
 //exec////////////////////////////////////////////////////////////////////////
@@ -370,7 +366,7 @@ inline auto exec(sqlite3_stmt* const s) noexcept
 template <int I = 0, typename ...A>
 inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
-  set<I>(s, ::std::forward<A>(args)...);
+  set<I>(s, std::forward<A>(args)...);
 
   return exec(s);
 }
@@ -388,59 +384,59 @@ inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   sqlite3_reset(s);
 
-  return exec<I>(s, ::std::forward<A>(args)...);
+  return exec<I>(s, std::forward<A>(args)...);
 }
 
 // forwarders
 template <int I = 0, typename S, typename ...A,
-  typename = ::std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto exec(S const& s, A&& ...args) noexcept(
-  noexcept(exec(s.get(), ::std::forward<A>(args)...))
+  noexcept(exec(s.get(), std::forward<A>(args)...))
 )
 {
-  return exec<I>(s.get(), ::std::forward<A>(args)...);
+  return exec<I>(s.get(), std::forward<A>(args)...);
 }
 
 template <int I = 0, typename S, typename ...A,
-  typename = ::std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto rexec(S const& s, A&& ...args) noexcept(
-  noexcept(rexec(s.get(), ::std::forward<A>(args)...))
+  noexcept(rexec(s.get(), std::forward<A>(args)...))
 )
 {
-  return rexec<I>(s.get(), ::std::forward<A>(args)...);
+  return rexec<I>(s.get(), std::forward<A>(args)...);
 }
 
 template <int I = 0, typename A, typename ...B>
 inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   noexcept(
     exec<I>(
-      make_unique(db, ::std::forward<A>(a)), ::std::forward<B>(args)...
+      make_unique(db, std::forward<A>(a)), std::forward<B>(args)...
     )
   )
 )
 {
   return exec<I>(
-    make_unique(db, ::std::forward<A>(a)), ::std::forward<B>(args)...
+    make_unique(db, std::forward<A>(a)), std::forward<B>(args)...
   );
 }
 
 template <typename D, typename ...A,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto exec(D const& db, A&& ...args) noexcept(
-  noexcept(exec(db.get(), ::std::forward<A>(args)...))
+  noexcept(exec(db.get(), std::forward<A>(args)...))
 )
 {
-  return exec(db.get(), ::std::forward<A>(args)...);
+  return exec(db.get(), std::forward<A>(args)...);
 }
 
 //exec_multi//////////////////////////////////////////////////////////////////
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<char const*, ::std::decay_t<T> >{},
-  decltype(sqlite3_exec(::std::declval<sqlite3*>(), ::std::declval<T>(),
+inline std::enable_if_t<
+  std::is_same<char const*, std::decay_t<T> >{},
+  decltype(sqlite3_exec(std::declval<sqlite3*>(), std::declval<T>(),
     nullptr, nullptr, nullptr)
   )
 >
@@ -450,9 +446,9 @@ exec_multi(sqlite3* const db, T&& a) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<::std::string, ::std::decay_t<T> >{},
-  decltype(exec_multi(::std::declval<sqlite3*>(), ::std::declval<T>()))
+inline std::enable_if_t<
+  std::is_same<std::string, std::decay_t<T> >{},
+  decltype(exec_multi(std::declval<sqlite3*>(), std::declval<T>()))
 >
 exec_multi(sqlite3* const db, T&& a) noexcept
 {
@@ -460,19 +456,19 @@ exec_multi(sqlite3* const db, T&& a) noexcept
 }
 
 template <typename D, typename ...A,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto exec_multi(D const& db, A&& ...args) noexcept(
-  noexcept(exec_multi(db.get(), ::std::forward<A>(args)...))
+  noexcept(exec_multi(db.get(), std::forward<A>(args)...))
 )
 {
-  return exec_multi(db.get(), ::std::forward<A>(args)...);
+  return exec_multi(db.get(), std::forward<A>(args)...);
 }
 
 //get/////////////////////////////////////////////////////////////////////////
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_integral<remove_cvr_t<T> >{} &&
+inline std::enable_if_t<
+  std::is_integral<remove_cvr_t<T> >{} &&
   (sizeof(T) <= sizeof(int)),
   remove_cvr_t<T>
 >
@@ -482,8 +478,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_integral<remove_cvr_t<T> >{} &&
+inline std::enable_if_t<
+  std::is_integral<remove_cvr_t<T> >{} &&
   (sizeof(T) > sizeof(int)),
   remove_cvr_t<T>
 >
@@ -493,8 +489,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_floating_point<remove_cvr_t<T> >{}, remove_cvr_t<T>
+inline std::enable_if_t<
+  std::is_floating_point<remove_cvr_t<T> >{}, remove_cvr_t<T>
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
@@ -502,8 +498,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<remove_cvr_t<T>, char const*>{}, remove_cvr_t<T>
+inline std::enable_if_t<
+  std::is_same<remove_cvr_t<T>, char const*>{}, remove_cvr_t<T>
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
@@ -511,8 +507,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<remove_cvr_t<T>, charpair_t>{}, remove_cvr_t<T>
+inline std::enable_if_t<
+  std::is_same<remove_cvr_t<T>, charpair_t>{}, remove_cvr_t<T>
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
@@ -523,20 +519,20 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<remove_cvr_t<T>, ::std::string>{}, remove_cvr_t<T>
+inline std::enable_if_t<
+  std::is_same<remove_cvr_t<T>, std::string>{}, remove_cvr_t<T>
 >
 get(sqlite3_stmt* const s, int const i = 0)
 {
   return {
     get<char const*>(s, i),
-    ::std::string::size_type(sqlite3_column_bytes(s, i))
+    std::string::size_type(sqlite3_column_bytes(s, i))
   };
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<remove_cvr_t<T>, void const*>{}, remove_cvr_t<T>
+inline std::enable_if_t<
+  std::is_same<remove_cvr_t<T>, void const*>{}, remove_cvr_t<T>
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
@@ -544,8 +540,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 }
 
 template <typename T>
-inline ::std::enable_if_t<
-  ::std::is_same<remove_cvr_t<T>, blobpair_t>{}, remove_cvr_t<T>
+inline std::enable_if_t<
+  std::is_same<remove_cvr_t<T>, blobpair_t>{}, remove_cvr_t<T>
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
@@ -559,82 +555,82 @@ namespace
 {
 
 template <typename>
-struct is_std_pair : ::std::false_type { };
+struct is_std_pair : std::false_type { };
 
 template <class T1, class T2>
-struct is_std_pair<::std::pair<T1, T2> > : ::std::true_type { };
+struct is_std_pair<std::pair<T1, T2> > : std::true_type { };
 
 template <typename>
-struct is_std_tuple : ::std::false_type { };
+struct is_std_tuple : std::false_type { };
 
 template <class ...A>
-struct is_std_tuple<::std::tuple<A...> > : ::std::true_type { };
+struct is_std_tuple<std::tuple<A...> > : std::true_type { };
 
 template <typename A, typename ...B>
 struct count_types :
-  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
+  std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
 {
 };
 
 template <typename A>
-struct count_types<A> : ::std::integral_constant<int, 1>
+struct count_types<A> : std::integral_constant<int, 1>
 {
 };
 
 template <>
 struct count_types<blobpair_t> :
-  ::std::integral_constant<int, 1>
+  std::integral_constant<int, 1>
 {
 };
 
 template <>
 struct count_types<charpair_t> :
-  ::std::integral_constant<int, 1>
+  std::integral_constant<int, 1>
 {
 };
 
 template <>
 struct count_types<charpair16_t> :
-  ::std::integral_constant<int, 1>
+  std::integral_constant<int, 1>
 {
 };
 
 template <>
 struct count_types<nullpair_t> :
-  ::std::integral_constant<int, 1>
+  std::integral_constant<int, 1>
 {
 };
 
 template <typename A, typename B>
-struct count_types<::std::pair<A, B> > :
-  ::std::integral_constant<int, count_types<A>{} + count_types<B>{}>
+struct count_types<std::pair<A, B> > :
+  std::integral_constant<int, count_types<A>{} + count_types<B>{}>
 {
 };
 
 template <typename A, typename ...B>
-struct count_types<::std::tuple<A, B...> > :
-  ::std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
+struct count_types<std::tuple<A, B...> > :
+  std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
 {
 };
 
-template <::std::size_t I, int S, typename A, typename ...B>
+template <std::size_t I, int S, typename A, typename ...B>
 struct count_types_n : count_types_n<I - 1, S + count_types<A>{}, B...>
 {
 };
 
 template <int S, typename A, typename ...B>
-struct count_types_n<0, S, A, B...> : ::std::integral_constant<int, S>
+struct count_types_n<0, S, A, B...> : std::integral_constant<int, S>
 {
 };
 
-template <typename T, ::std::size_t ...Is>
+template <typename T, std::size_t ...Is>
 T make_tuple(sqlite3_stmt* const s, int const i,
-  ::std::index_sequence<Is...> const)
+  std::index_sequence<Is...> const)
 {
   return T{
-    get<::std::tuple_element_t<Is, T> >(s,
+    get<std::tuple_element_t<Is, T> >(s,
       i +
-      count_types_n<Is, 0, typename ::std::tuple_element<Is, T>::type...>{}
+      count_types_n<Is, 0, typename std::tuple_element<Is, T>::type...>{}
     )...
   };
 }
@@ -642,42 +638,42 @@ T make_tuple(sqlite3_stmt* const s, int const i,
 }
 
 template <typename T>
-inline ::std::enable_if_t<
+inline std::enable_if_t<
   (is_std_pair<remove_cvr_t<T> >{} ||
   is_std_tuple<remove_cvr_t<T> >{}) &&
-  !::std::is_same<remove_cvr_t<T>, blobpair_t>{} &&
-  !::std::is_same<remove_cvr_t<T>, charpair_t>{} &&
-  !::std::is_same<remove_cvr_t<T>, charpair16_t>{} &&
-  !::std::is_same<remove_cvr_t<T>, nullpair_t>{},
+  !std::is_same<remove_cvr_t<T>, blobpair_t>{} &&
+  !std::is_same<remove_cvr_t<T>, charpair_t>{} &&
+  !std::is_same<remove_cvr_t<T>, charpair16_t>{} &&
+  !std::is_same<remove_cvr_t<T>, nullpair_t>{},
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept(
   noexcept(
     make_tuple<T>(s,
       i,
-      ::std::make_index_sequence<::std::tuple_size<T>{}>()
+      std::make_index_sequence<std::tuple_size<T>{}>()
     )
   )
 )
 {
   return make_tuple<T>(s,
     i,
-    ::std::make_index_sequence<::std::tuple_size<T>{}>()
+    std::make_index_sequence<std::tuple_size<T>{}>()
   );
 }
 
 template <typename ...A,
-  typename = ::std::enable_if_t<bool(sizeof...(A) > 1)>
+  typename = std::enable_if_t<bool(sizeof...(A) > 1)>
 >
 auto get(sqlite3_stmt* const s, int i = 0) noexcept(
-  noexcept(get<::std::tuple<A...> >(s, i))
+  noexcept(get<std::tuple<A...> >(s, i))
 )
 {
-  return get<::std::tuple<A...> >(s, i);
+  return get<std::tuple<A...> >(s, i);
 }
 
 template <typename T, typename S,
-  typename = typename ::std::enable_if_t<is_stmt_t<S>{}>
+  typename = typename std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto get(S const& s, int const i = 0) noexcept(
   noexcept(get<T>(s.get(), i))
@@ -689,16 +685,16 @@ inline auto get(S const& s, int const i = 0) noexcept(
 //execget/////////////////////////////////////////////////////////////////////
 template <typename T, int I = 0, typename S, typename ...A>
 inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
-  noexcept(exec<I>(::std::forward<S>(s), ::std::forward<A>(args)...),
+  noexcept(exec<I>(std::forward<S>(s), std::forward<A>(args)...),
     get<T>(s, i)
   )
 )
 {
 #ifndef NDEBUG
-  auto const r(exec<I>(::std::forward<S>(s), ::std::forward<A>(args)...));
+  auto const r(exec<I>(std::forward<S>(s), std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
 #else
-  exec<I>(::std::forward<S>(s), ::std::forward<A>(args)...);
+  exec<I>(std::forward<S>(s), std::forward<A>(args)...);
 #endif // NDEBUG
 
   return get<T>(s, i);
@@ -706,42 +702,42 @@ inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
 
 template <typename T, int I = 0, typename S, typename ...A>
 inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
-  noexcept(rexec<I>(::std::forward<S>(s), ::std::forward<A>(args)...),
+  noexcept(rexec<I>(std::forward<S>(s), std::forward<A>(args)...),
     get<T>(s, i)
   )
 )
 {
 #ifndef NDEBUG
-  auto const r(rexec<I>(::std::forward<S>(s), ::std::forward<A>(args)...));
+  auto const r(rexec<I>(std::forward<S>(s), std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
 #else
-  rexec<I>(::std::forward<S>(s), ::std::forward<A>(args)...);
+  rexec<I>(std::forward<S>(s), std::forward<A>(args)...);
 #endif // NDEBUG
 
   return get<T>(s, i);
 }
 
 template <typename T, int I = 0, typename D, typename A, typename ...B,
-  typename = ::std::enable_if_t<
-    ::std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
-    ::std::is_same<remove_cvr_t<D>, shared_db_t>{} ||
-    ::std::is_same<remove_cvr_t<D>, unique_db_t>{}
+  typename = std::enable_if_t<
+    std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
+    std::is_same<remove_cvr_t<D>, shared_db_t>{} ||
+    std::is_same<remove_cvr_t<D>, unique_db_t>{}
   >
 >
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
   noexcept(
     execget<T, I>(
-      make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
+      make_unique(std::forward<D>(db), std::forward<A>(a)),
       i,
-      ::std::forward<B>(args)...
+      std::forward<B>(args)...
     )
   )
 )
 {
   return execget<T, I>(
-    make_unique(::std::forward<D>(db), ::std::forward<A>(a)),
+    make_unique(std::forward<D>(db), std::forward<A>(a)),
     i,
-    ::std::forward<B>(args)...
+    std::forward<B>(args)...
   );
 }
 
@@ -781,11 +777,11 @@ public:
     return reinterpret_cast<char const*>(sqlite3_column_text(stmt_, i_));
   }
 
-  operator ::std::string() const &&
+  operator std::string() const &&
   {
     return {
       reinterpret_cast<char const*>(sqlite3_column_text(stmt_, i_)),
-      ::std::string::size_type(sqlite3_column_bytes(stmt_, i_))
+      std::string::size_type(sqlite3_column_bytes(stmt_, i_))
     };
   }
 
@@ -820,13 +816,13 @@ public:
 };
 
 template <typename S,
-  typename = ::std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_t<S>{}>
 >
 inline decltype(auto) operator|(S const& s, col&& c) noexcept
 {
   assert(s);
 
-  ::std::move(c).set_stmt(s.get());
+  std::move(c).set_stmt(s.get());
 
   return c;
 }
@@ -838,7 +834,7 @@ inline auto changes(sqlite3* const db) noexcept
 }
 
 template <typename D,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto changes(D const& db) noexcept(noexcept(changes(db.get())))
 {
@@ -851,7 +847,7 @@ inline auto clear_bindings(sqlite3_stmt* const s) noexcept
   return sqlite3_clear_bindings(s);
 }
 
-template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
 inline auto clear_bindings(S const& s) noexcept(
   noexcept(clear_bindings(s.get()))
 )
@@ -865,7 +861,7 @@ inline auto column_count(sqlite3_stmt* const s) noexcept
   return sqlite3_column_count(s);
 }
 
-template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
 inline auto column_count(S const& s) noexcept(
   noexcept(column_count(s.get()))
 )
@@ -879,7 +875,7 @@ inline auto column_name(sqlite3_stmt* const s, int const i = 0) noexcept
   return sqlite3_column_name(s, i);
 }
 
-template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
 inline auto column_name(S const& s, int const i = 0) noexcept(
   noexcept(column_name(s.get(), i))
 )
@@ -893,7 +889,7 @@ inline auto column_name16(sqlite3_stmt* const s, int const i = 0) noexcept
   return static_cast<char16_t const*>(sqlite3_column_name16(s, i));
 }
 
-template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
 inline auto column_name16(S const& s, int const i = 0) noexcept(
   noexcept(column_name16(s.get(), i))
 )
@@ -920,11 +916,11 @@ inline auto open_shared(char const* const filename, int const flags,
 }
 
 template <typename ...A>
-inline auto open_shared(::std::string const& filename, A&& ...args) noexcept(
-  noexcept(open_shared(filename.c_str(), ::std::forward<A>(args)...))
+inline auto open_shared(std::string const& filename, A&& ...args) noexcept(
+  noexcept(open_shared(filename.c_str(), std::forward<A>(args)...))
 )
 {
-  return open_shared(filename.c_str(), ::std::forward<A>(args)...);
+  return open_shared(filename.c_str(), std::forward<A>(args)...);
 }
 
 //open_unique/////////////////////////////////////////////////////////////////
@@ -946,11 +942,11 @@ inline auto open_unique(char const* const filename, int const flags,
 }
 
 template <typename ...A>
-inline auto open_unique(::std::string const& filename, A&& ...args) noexcept(
-  noexcept(open_unique(filename.c_str(), ::std::forward<A>(args)...))
+inline auto open_unique(std::string const& filename, A&& ...args) noexcept(
+  noexcept(open_unique(filename.c_str(), std::forward<A>(args)...))
 )
 {
-  return open_unique(filename.c_str(), ::std::forward<A>(args)...);
+  return open_unique(filename.c_str(), std::forward<A>(args)...);
 }
 
 //reset///////////////////////////////////////////////////////////////////////
@@ -959,7 +955,7 @@ inline auto reset(sqlite3_stmt* const s) noexcept
   return sqlite3_reset(s);
 }
 
-template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
 inline auto reset(S const& s) noexcept(noexcept(reset(s.get())))
 {
   return reset(s.get());
@@ -971,7 +967,7 @@ inline auto size(sqlite3_stmt* const s, int const i = 0) noexcept
   return sqlite3_column_bytes(s, i);
 }
 
-template <typename S, typename = ::std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
 inline auto size(S const& s, int const i = 0) noexcept(
   noexcept(size(s.get(), i))
 )
@@ -981,10 +977,10 @@ inline auto size(S const& s, int const i = 0) noexcept(
 
 template <typename ...A>
 inline auto bytes(A&& ...args) noexcept(
-  noexcept(size(::std::forward<A>(args)...))
+  noexcept(size(std::forward<A>(args)...))
 )
 {
-  return size(::std::forward<A>(args)...);
+  return size(std::forward<A>(args)...);
 }
 
 //for/////////////////////////////////////////////////////////////////////////
@@ -1093,21 +1089,21 @@ constexpr inline auto extract_signature(F const&) noexcept ->
   return extract_signature(&F::operator());
 }
 
-template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
+template <typename R, typename ...A, typename F, typename S, std::size_t ...Is>
 inline auto foreach_row(S&& s, F const f, int const i,
-  signature<R(A...)> const, ::std::index_sequence<Is...> const) noexcept(
-    noexcept(f(::std::declval<A>()...))
+  signature<R(A...)> const, std::index_sequence<Is...> const) noexcept(
+    noexcept(f(std::declval<A>()...))
   )
 {
   decltype(exec(s)) r;
 
   for (;;)
   {
-    switch (r = exec(::std::forward<S>(s)))
+    switch (r = exec(std::forward<S>(s)))
     {
       case SQLITE_ROW:
         if (f(get<A>(
-          ::std::forward<S>(s),
+          std::forward<S>(s),
           i + count_types_n<Is, 0, A...>{})...)
         )
         {
@@ -1131,23 +1127,23 @@ inline auto foreach_row(S&& s, F const f, int const i,
   return r;
 }
 
-template <typename R, typename ...A, typename F, typename S, ::std::size_t ...Is>
+template <typename R, typename ...A, typename F, typename S, std::size_t ...Is>
 inline auto foreach_row(S&& s, F&& f, int const i,
   signature<R(A...)> const) noexcept(
-    noexcept(foreach_row(::std::forward<S>(s),
-        ::std::forward<F>(f),
+    noexcept(foreach_row(std::forward<S>(s),
+        std::forward<F>(f),
         i,
         extract_signature(f),
-        ::std::make_index_sequence<sizeof...(A)>()
+        std::make_index_sequence<sizeof...(A)>()
       )
     )
   )
 {
-  return foreach_row(::std::forward<S>(s),
-    ::std::forward<F>(f),
+  return foreach_row(std::forward<S>(s),
+    std::forward<F>(f),
     i,
     extract_signature(f),
-    ::std::make_index_sequence<sizeof...(A)>()
+    std::make_index_sequence<sizeof...(A)>()
   );
 }
 
@@ -1156,16 +1152,16 @@ inline auto foreach_row(S&& s, F&& f, int const i,
 template <typename F, typename S>
 inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
     noexcept(
-      foreach_row(::std::forward<S>(s),
-        ::std::forward<F>(f),
+      foreach_row(std::forward<S>(s),
+        std::forward<F>(f),
         i,
         extract_signature(f)
       )
     )
   )
 {
-  return foreach_row(::std::forward<S>(s),
-    ::std::forward<F>(f),
+  return foreach_row(std::forward<S>(s),
+    std::forward<F>(f),
     i,
     extract_signature(f)
   );
@@ -1173,7 +1169,7 @@ inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
 
 template <typename F>
 inline void foreach_stmt(sqlite3* const db, F const f) noexcept(
-  noexcept(f(::std::declval<sqlite3_stmt*>()))
+  noexcept(f(std::declval<sqlite3_stmt*>()))
 )
 {
   for (auto s(sqlite3_next_stmt(db, {}));
@@ -1182,23 +1178,23 @@ inline void foreach_stmt(sqlite3* const db, F const f) noexcept(
 }
 
 template <typename D, typename ...A,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto foreach_stmt(D const& db, A&& ...args) noexcept(
-  noexcept(foreach_stmt(db.get(), ::std::forward<A>(args)...))
+  noexcept(foreach_stmt(db.get(), std::forward<A>(args)...))
 )
 {
-  return foreach_stmt(db.get(), ::std::forward<A>(args)...);
+  return foreach_stmt(db.get(), std::forward<A>(args)...);
 }
 
 template <typename F, typename S>
 inline auto foreach_stmt(S&& s, F const f) noexcept(noexcept(f()))
 {
-  decltype(exec(::std::forward<S>(s))) r;
+  decltype(exec(std::forward<S>(s))) r;
 
   for (;;)
   {
-    switch (r = exec(::std::forward<S>(s)))
+    switch (r = exec(std::forward<S>(s)))
     {
       case SQLITE_ROW:
         if (f())
@@ -1230,14 +1226,14 @@ namespace
 template <typename FP, FP fp, typename C, typename S>
 inline auto container_push(S&& s, C& c, int const i)
 {
-  decltype(exec(::std::forward<S>(s))) r;
+  decltype(exec(std::forward<S>(s))) r;
 
   for (;;)
   {
-    switch (r = exec(::std::forward<S>(s)))
+    switch (r = exec(std::forward<S>(s)))
     {
       case SQLITE_ROW:
-        (c.*fp)(get<typename C::value_type>(::std::forward<S>(s), i));
+        (c.*fp)(get<typename C::value_type>(std::forward<S>(s), i));
 
         continue;
 
@@ -1257,14 +1253,14 @@ inline auto container_push(S&& s, C& c, int const i)
 template <typename FP, FP fp, typename C, typename S, typename T>
 inline auto container_push(S&& s, C& c, T const n, int const i)
 {
-  decltype(exec(::std::forward<S>(s))) r(SQLITE_DONE);
+  decltype(exec(std::forward<S>(s))) r(SQLITE_DONE);
 
   for (T j{}; j != n; ++j)
   {
-    switch (r = exec(::std::forward<S>(s)))
+    switch (r = exec(std::forward<S>(s)))
     {
       case SQLITE_ROW:
-        (c.*fp)(get<typename C::value_type>(::std::forward<S>(s), i));
+        (c.*fp)(get<typename C::value_type>(std::forward<S>(s), i));
 
         continue;
 
@@ -1290,7 +1286,7 @@ inline auto emplace(S&& s, C& c, int const i = 0)
   return container_push<
     decltype(&C::template emplace<typename C::value_type>),
     &C::template emplace<typename C::value_type>
-  >(::std::forward<S>(s), c, i);
+  >(std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
@@ -1299,7 +1295,7 @@ inline auto emplace_n(S&& s, C& c, T&& n, int const i = 0)
   return container_push<
     decltype(&C::template emplace<typename C::value_type>),
     &C::template emplace<typename C::value_type>
-  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
+  >(std::forward<S>(s), c, std::forward<T>(n), i);
 }
 
 //emplace_back////////////////////////////////////////////////////////////////
@@ -1309,7 +1305,7 @@ inline auto emplace_back(S&& s, C& c, int const i = 0)
   return container_push<
     decltype(&C::template emplace_back<typename C::value_type>),
     &C::template emplace_back<typename C::value_type>
-  >(::std::forward<S>(s), c, i);
+  >(std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
@@ -1318,7 +1314,7 @@ inline auto emplace_back_n(S&& s, C& c, T&& n, int const i = 0)
   return container_push<
     decltype(&C::template emplace_back<typename C::value_type>),
     &C::template emplace_back<typename C::value_type>
-  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
+  >(std::forward<S>(s), c, std::forward<T>(n), i);
 }
 
 //insert//////////////////////////////////////////////////////////////////////
@@ -1328,7 +1324,7 @@ inline auto insert(S&& s, C& c, int const i = 0)
   return container_push<
     decltype(&C::template insert<typename C::value_type>),
     &C::template insert<typename C::value_type>
-  >(::std::forward<S>(s), c, i);
+  >(std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
@@ -1337,7 +1333,7 @@ inline auto insert_n(S&& s, C& c, T&& n, int const i = 0)
   return container_push<
     decltype(&C::template insert<typename C::value_type>),
     &C::template insert<typename C::value_type>
-  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
+  >(std::forward<S>(s), c, std::forward<T>(n), i);
 }
 
 //push_back///////////////////////////////////////////////////////////////////
@@ -1347,7 +1343,7 @@ inline auto push_back(S&& s, C& c, int const i = 0)
   return container_push<
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
-  >(::std::forward<S>(s), c, i);
+  >(std::forward<S>(s), c, i);
 }
 
 template <typename C, typename S, typename T>
@@ -1356,16 +1352,16 @@ inline auto push_back_n(S&& s, C& c, T&& n, int const i = 0)
   return container_push<
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
-  >(::std::forward<S>(s), c, ::std::forward<T>(n), i);
+  >(std::forward<S>(s), c, std::forward<T>(n), i);
 }
 
 //reset_all///////////////////////////////////////////////////////////////////
 inline void reset_all(sqlite3* const db) noexcept
 {
-  ::sqlite::foreach_stmt(db,
+  squ::foreach_stmt(db,
     [](auto const s) noexcept
     {
-      ::sqlite::reset(s);
+      squ::reset(s);
 
       return true;
     }
@@ -1373,7 +1369,7 @@ inline void reset_all(sqlite3* const db) noexcept
 }
 
 template <typename D,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto reset_all(D const& db) noexcept(noexcept(reset_all(db.get())))
 {
@@ -1383,12 +1379,12 @@ inline auto reset_all(D const& db) noexcept(noexcept(reset_all(db.get())))
 //reset_all_busy//////////////////////////////////////////////////////////////
 inline void reset_all_busy(sqlite3* const db) noexcept
 {
-  ::sqlite::foreach_stmt(db,
+  squ::foreach_stmt(db,
     [](auto const s) noexcept
     {
       if (sqlite3_stmt_busy(s))
       {
-        ::sqlite::reset(s);
+        squ::reset(s);
       }
       // else do nothing
 
@@ -1398,7 +1394,7 @@ inline void reset_all_busy(sqlite3* const db) noexcept
 }
 
 template <typename D,
-  typename = ::std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto reset_all_busy(D const& db) noexcept(
   noexcept(reset_all_busy(db.get()))
