@@ -992,7 +992,8 @@ struct signature
 {
 };
 
-template <typename F>
+//
+template <typename>
 struct remove_cv_seq;
 
 //
@@ -1016,6 +1017,25 @@ struct remove_cv_seq<R(A...) volatile>
 
 template <typename R, typename ...A>
 struct remove_cv_seq<R(A...) const volatile>
+{
+  using type = R(A...);
+};
+
+//
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const noexcept>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) volatile noexcept>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const volatile noexcept>
 {
   using type = R(A...);
 };
@@ -1047,6 +1067,31 @@ struct remove_cv_seq<R(A...) const volatile &>
 
 //
 template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) & noexcept>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const & noexcept >
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) volatile & noexcept>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const volatile & noexcept>
+{
+  using type = R(A...);
+};
+
+//
+template <typename R, typename ...A>
 struct remove_cv_seq<R(A...) &&>
 {
   using type = R(A...);
@@ -1066,6 +1111,31 @@ struct remove_cv_seq<R(A...) volatile &&>
 
 template <typename R, typename ...A>
 struct remove_cv_seq<R(A...) const volatile &&>
+{
+  using type = R(A...);
+};
+
+//
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) && noexcept>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const && noexcept>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) volatile && noexcept>
+{
+  using type = R(A...);
+};
+
+template <typename R, typename ...A>
+struct remove_cv_seq<R(A...) const volatile && noexcept>
 {
   using type = R(A...);
 };
