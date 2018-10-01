@@ -1,5 +1,5 @@
 ## Description
-A lightweight C++14 wrapper library for sqlite3. The goals of the library are:
+A lightweight C++17 wrapper library for sqlite3. The goals of the library are:
 - code verbosity,
 - resource management,
 - transparency,
