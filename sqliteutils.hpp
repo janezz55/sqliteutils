@@ -35,6 +35,8 @@
 
 #include <string>
 
+#include <string_view>
+
 #include <type_traits>
 
 #include <utility>
@@ -248,19 +250,16 @@ inline auto rset(S const& s, A&& ...args) noexcept(
 }
 
 //make_unique/////////////////////////////////////////////////////////////////
-template <typename T,
-  typename = std::enable_if_t<std::is_same<T, char>{}>
->
-inline auto make_unique(sqlite3* const db, T const* const& a,
-  int const size = -1) noexcept
+inline auto make_unique(sqlite3* const db,
+  std::string_view const& sv) noexcept
 {
   sqlite3_stmt* s;
 
 #ifndef NDEBUG
-  auto const result(sqlite3_prepare_v2(db, a, size, &s, nullptr));
+  auto result(sqlite3_prepare_v3(db, sv.data(), sv.size(), 0, &s, nullptr));
   assert(SQLITE_OK == result);
 #else
-  sqlite3_prepare_v2(db, a, size, &s, nullptr);
+  sqlite3_prepare_v3(db, a, size, 0, &s, nullptr);
 #endif // NDEBUG
   return unique_stmt_t(s);
 }
@@ -271,17 +270,12 @@ inline auto make_unique(sqlite3* const db, char const (&a)[N]) noexcept
   sqlite3_stmt* s;
 
 #ifndef NDEBUG
-  auto const result(sqlite3_prepare_v2(db, a, N, &s, nullptr));
+  auto const result(sqlite3_prepare_v3(db, a, N, 0, &s, nullptr));
   assert(SQLITE_OK == result);
 #else
-  sqlite3_prepare_v2(db, a, N, &s, nullptr);
+  sqlite3_prepare_v3(db, a, N, 0, &s, nullptr);
 #endif // NDEBUG
   return unique_stmt_t(s);
-}
-
-inline auto make_unique(sqlite3* const db, std::string const& a) noexcept
-{
-  return make_unique(db, a.c_str(), a.size());
 }
 
 // forwarders
@@ -296,17 +290,16 @@ inline auto make_unique(D const& db, A&& ...args) noexcept(
 }
 
 //make_shared/////////////////////////////////////////////////////////////////
-template <typename T, typename = std::enable_if_t<std::is_same<T, char>{}> >
-inline auto make_shared(sqlite3* const db, T const* const& a,
-  int const size = -1) noexcept
+inline auto make_shared(sqlite3* const db,
+  std::string_view const& sv) noexcept
 {
   sqlite3_stmt* s;
 
 #ifndef NDEBUG
-  auto const result(sqlite3_prepare_v2(db, a, size, &s, nullptr));
+  auto result(sqlite3_prepare_v3(db, sv.data(), sv.size(), 0, &s, nullptr));
   assert(SQLITE_OK == result);
 #else
-  sqlite3_prepare_v2(db, a, size, &s, nullptr);
+  sqlite3_prepare_v3(db, a, size, 0, &s, nullptr);
 #endif // NDEBUG
   return shared_stmt_t(s, detail::sqlite3_stmt_deleter());
 }
@@ -317,17 +310,12 @@ inline auto make_shared(sqlite3* const db, char const (&a)[N]) noexcept
   sqlite3_stmt* s;
 
 #ifndef NDEBUG
-  auto const result(sqlite3_prepare_v2(db, a, N, &s, nullptr));
+  auto const result(sqlite3_prepare_v3(db, a, N, 0, &s, nullptr));
   assert(SQLITE_OK == result);
 #else
-  sqlite3_prepare_v2(db, a, N, &s, nullptr);
+  sqlite3_prepare_v3(db, a, N, 0, &s, nullptr);
 #endif // NDEBUG
   return shared_stmt_t(s, detail::sqlite3_stmt_deleter());
-}
-
-inline auto make_shared(sqlite3* const db, std::string const& a) noexcept
-{
-  return make_shared(db, a.c_str(), a.size());
 }
 
 // forwarders
