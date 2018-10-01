@@ -181,7 +181,7 @@ using shared_db_t = std::shared_ptr<sqlite3>;
 using unique_db_t = std::unique_ptr<sqlite3, detail::sqlite3_deleter>;
 
 template <typename T>
-using remove_cvr_t = std::remove_cv_t<std::remove_reference_t<T> >;
+using remove_cvr_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
 template <typename T>
 using is_db_t = 
@@ -536,7 +536,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
   };
 }
 
-namespace
+namespace detail
 {
 
 template <typename>
@@ -623,8 +623,8 @@ T make_tuple(sqlite3_stmt* const s, int const i,
 
 template <typename T>
 inline std::enable_if_t<
-  (is_std_pair<remove_cvr_t<T> >{} ||
-  is_std_tuple<remove_cvr_t<T> >{}) &&
+  (detail::is_std_pair<remove_cvr_t<T> >{} ||
+  detail::is_std_tuple<remove_cvr_t<T> >{}) &&
   !std::is_same<remove_cvr_t<T>, blobpair_t>{} &&
   !std::is_same<remove_cvr_t<T>, charpair_t>{} &&
   !std::is_same<remove_cvr_t<T>, charpair16_t>{} &&
@@ -633,14 +633,14 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept(
   noexcept(
-    make_tuple<T>(s,
+    detail::make_tuple<T>(s,
       i,
       std::make_index_sequence<std::size_t(std::tuple_size<T>{})>()
     )
   )
 )
 {
-  return make_tuple<T>(s,
+  return detail::make_tuple<T>(s,
     i,
     std::make_index_sequence<std::tuple_size<T>{}>()
   );
@@ -1158,7 +1158,7 @@ inline auto foreach_row(S&& s, F const f, int const i,
       case SQLITE_ROW:
         if (f(get<A>(
           std::forward<S>(s),
-          i + count_types_n<Is, 0, A...>{})...)
+          i + detail::count_types_n<Is, 0, A...>{})...)
         )
         {
           continue;
