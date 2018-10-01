@@ -52,19 +52,6 @@ using charpair16_t = std::pair<char16_t const* const, sqlite3_uint64 const>;
 
 using nullpair_t = std::pair<std::nullptr_t const, sqlite3_uint64 const>;
 
-namespace
-{
-
-struct swallow
-{
-  template <typename ...T>
-  constexpr explicit swallow(T&& ...) noexcept
-  {
-  }
-};
-
-}
-
 namespace detail
 {
 
@@ -182,11 +169,9 @@ inline void set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
 
 template <int I, std::size_t ...Is, typename ...A>
 void set(sqlite3_stmt* const s, std::index_sequence<Is...> const,
-  A&& ...args) noexcept(
-    noexcept(swallow{(set<I + Is>(s, args), 0)...})
-  )
+  A&& ...args) noexcept(noexcept((set<I + Is>(s, args), ...)))
 {
-  swallow{(set<I + Is>(s, args), 0)...};
+  (set<I + Is>(s, args), ...);
 }
 
 }
@@ -628,9 +613,8 @@ T make_tuple(sqlite3_stmt* const s, int const i,
   std::index_sequence<Is...> const)
 {
   return T{
-    get<std::tuple_element_t<Is, T> >(s,
-      i +
-      count_types_n<Is, 0, typename std::tuple_element<Is, T>::type...>{}
+    get<std::tuple_element_t<Is, T>>(s,
+      i + count_types_n<Is, 0, typename std::tuple_element<Is, T>::type...>{}
     )...
   };
 }
@@ -651,7 +635,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept(
   noexcept(
     make_tuple<T>(s,
       i,
-      std::make_index_sequence<std::tuple_size<T>{}>()
+      std::make_index_sequence<std::size_t(std::tuple_size<T>{})>()
     )
   )
 )
@@ -666,10 +650,10 @@ template <typename ...A,
   typename = std::enable_if_t<bool(sizeof...(A) > 1)>
 >
 auto get(sqlite3_stmt* const s, int i = 0) noexcept(
-  noexcept(get<std::tuple<A...> >(s, i))
+  noexcept(get<std::tuple<A...>>(s, i))
 )
 {
-  return get<std::tuple<A...> >(s, i);
+  return get<std::tuple<A...>>(s, i);
 }
 
 template <typename T, typename S,
