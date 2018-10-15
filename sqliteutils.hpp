@@ -1149,11 +1149,11 @@ inline auto foreach_row(S&& s, F const f, int const i,
           i + detail::count_types_n<Is, 0, A...>{})...)
         )
         {
-          continue;
+          break;
         }
         else
         {
-          break;
+          continue;
         }
 
       case SQLITE_DONE:;
@@ -1241,11 +1241,11 @@ inline auto foreach_stmt(S&& s, F const f) noexcept(noexcept(f()))
       case SQLITE_ROW:
         if (f())
         {
-          continue;
+          break;
         }
         else
         {
-          break;
+          continue;
         }
 
       case SQLITE_DONE:;

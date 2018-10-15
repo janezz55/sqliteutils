@@ -38,7 +38,8 @@ int main(int, char*[])
     {
       std::cout << name << " " << age << " " << address << " " << salary << std::endl;
 
-      return true;
+      // true indicates an error
+      return false;
     }
   );
 
