@@ -18,9 +18,9 @@ Please create issues to request new features.
 
 int main(int, char*[])
 {
-  auto const db(::sqlite::open_unique("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
+  auto const db(squ::open_unique("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
-  ::sqlite::exec_multi(db,
+  squ::exec_multi(db,
     "DROP TABLE IF EXISTS COMPANY;"
     "CREATE TABLE COMPANY("
     "ID INT PRIMARY KEY     NOT NULL,"
@@ -38,27 +38,32 @@ int main(int, char*[])
     "VALUES(4, 'Mark', 25, 'Rich-Mond ', 65000.00)"
   );
 
-  auto const stmt(::sqlite::make_unique(db, "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"));
+  auto const stmt(
+    squ::make_unique(db,
+      "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"
+    )
+  );
 
-  ::sqlite::foreach_row(stmt,
-    [](::std::string const& name, unsigned const age,
-      ::std::string const& address, double const salary) noexcept
+  squ::foreach_row(stmt,
+    [](std::string const& name, unsigned const age,
+      std::string const& address, double const salary) noexcept
     {
-      ::std::cout << name << " " << age << " " << address << " " << salary << ::std::endl;
+      std::cout << name << " " << age << " " << address << " " << salary << std::endl;
 
-      return true;
+      // true indicates an error
+      return false;
     }
   );
 
-  ::sqlite::reset(stmt);
+  squ::reset(stmt);
 
-  ::std::vector<::std::tuple<::std::string, unsigned, ::std::string, double> > v;
+  std::vector<std::tuple<std::string, unsigned, std::string, double> > v;
 
-  ::sqlite::emplace_back(stmt, v);
+  squ::emplace_back(stmt, v);
 
   for (auto& t: v)
   {
-    ::std::cout << ::std::get<0>(t) << " " << ::std::get<1>(t) << " " << ::std::get<2>(t) << " " << ::std::get<3>(t) << ::std::endl;
+    std::cout << std::get<0>(t) << " " << std::get<1>(t) << " " << std::get<2>(t) << " " << std::get<3>(t) << std::endl;
   }
 
   return 0;
