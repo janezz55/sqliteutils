@@ -1308,11 +1308,11 @@ inline auto container_push(S&& s, C& c, int const i)
 }
 
 template <typename FP, FP fp, typename C, typename S, typename T>
-inline auto container_push(S&& s, C& c, T const n, int const i)
+inline auto container_push(S&& s, C& c, T n, int const i)
 {
   decltype(exec(std::forward<S>(s))) r(SQLITE_DONE);
 
-  for (T j{}; j != n; ++j)
+  while (n--)
   {
     switch (r = exec(std::forward<S>(s)))
     {
