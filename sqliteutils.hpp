@@ -454,7 +454,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 template <typename T>
 inline std::enable_if_t<
   std::is_integral<T>{} &&
-  (sizeof(T) > sizeof(std::int32_t)),
+  (sizeof(T) > sizeof(std::int32_t)) &&
+  (sizeof(T) <= sizeof(std::int64_t)),
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
@@ -512,6 +513,21 @@ get(sqlite3_stmt* const s, int const i = 0)
     std::string::size_type(sqlite3_column_bytes(s, i))
   };
 }
+
+template <typename T>
+inline std::enable_if_t<
+  std::is_same<T, std::string_view>{},
+  T
+>
+get(sqlite3_stmt* const s, int const i = 0)
+{
+  static_assert(!std::is_reference<T>{});
+  return {
+    get<char const*>(s, i),
+    std::string_view::size_type(sqlite3_column_bytes(s, i))
+  };
+}
+
 
 template <typename T>
 inline std::enable_if_t<
