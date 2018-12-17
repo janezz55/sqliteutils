@@ -447,7 +447,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
-  static_assert(!std::is_reference<T>{});
   return sqlite3_column_int(s, i);
 }
 
@@ -460,7 +459,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
-  static_assert(!std::is_reference<T>{});
   return sqlite3_column_int64(s, i);
 }
 
@@ -471,7 +469,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
-  static_assert(!std::is_reference<T>{});
   return sqlite3_column_double(s, i);
 }
 
@@ -482,7 +479,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
-  static_assert(!std::is_reference<T>{});
   return reinterpret_cast<char const*>(sqlite3_column_text(s, i));
 }
 
@@ -493,7 +489,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
-  static_assert(!std::is_reference<T>{});
   return {
     get<char const*>(s, i),
     sqlite3_column_bytes(s, i)
@@ -507,7 +502,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0)
 {
-  static_assert(!std::is_reference<T>{});
   return {
     get<char const*>(s, i),
     std::string::size_type(sqlite3_column_bytes(s, i))
@@ -521,7 +515,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0)
 {
-  static_assert(!std::is_reference<T>{});
   return {
     get<char const*>(s, i),
     std::string_view::size_type(sqlite3_column_bytes(s, i))
@@ -536,7 +529,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
-  static_assert(!std::is_reference<T>{});
   return sqlite3_column_blob(s, i);
 }
 
@@ -547,7 +539,6 @@ inline std::enable_if_t<
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
-  static_assert(!std::is_reference<T>{});
   return {
     get<void const*>(s, i),
     sqlite3_column_bytes(s, i)
@@ -658,7 +649,6 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept(
   )
 )
 {
-  static_assert(!std::is_reference<T>{});
   return detail::make_tuple<T>(s,
     i,
     std::make_index_sequence<std::tuple_size<T>{}>()
