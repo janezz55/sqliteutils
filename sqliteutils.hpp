@@ -1146,10 +1146,10 @@ constexpr inline auto extract_signature(F const&) noexcept ->
   return extract_signature(&F::operator());
 }
 
-template <typename R, typename ...A, typename F, typename S, std::size_t ...Is>
+template <typename R, typename ...A, typename F, typename S, std::size_t ...I>
 inline auto foreach_row(S&& s, F const f, int const i,
-  signature<R(A...)> const, std::index_sequence<Is...> const) noexcept(
-    noexcept(f(std::declval<A>()...))
+  signature<R(A...)> const, std::index_sequence<I...> const) noexcept(
+    noexcept(f(std::declval<remove_cvr_t<A>>()...))
   )
 {
   decltype(exec(s)) r;
@@ -1161,7 +1161,7 @@ inline auto foreach_row(S&& s, F const f, int const i,
       case SQLITE_ROW:
         if (f(get<remove_cvr_t<A>>(
           std::forward<S>(s),
-          i + detail::count_types_n<Is, 0, A...>{})...)
+          i + detail::count_types_n<I, 0, A...>{})...)
         )
         {
           break;
@@ -1184,14 +1184,14 @@ inline auto foreach_row(S&& s, F const f, int const i,
   return r;
 }
 
-template <typename R, typename ...A, typename F, typename S, std::size_t ...Is>
+template <typename R, typename ...A, typename F, typename S, std::size_t ...I>
 inline auto foreach_row(S&& s, F&& f, int const i,
   signature<R(A...)> const) noexcept(
     noexcept(foreach_row(std::forward<S>(s),
         std::forward<F>(f),
         i,
         extract_signature(f),
-        std::make_index_sequence<sizeof...(A)>()
+        std::index_sequence_for<A...>()
       )
     )
   )
@@ -1200,7 +1200,7 @@ inline auto foreach_row(S&& s, F&& f, int const i,
     std::forward<F>(f),
     i,
     extract_signature(f),
-    std::make_index_sequence<sizeof...(A)>()
+    std::index_sequence_for<A...>()
   );
 }
 
