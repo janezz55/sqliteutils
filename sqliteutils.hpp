@@ -1230,7 +1230,7 @@ inline void foreach_stmt(sqlite3* const db, F const f) noexcept(
 )
 {
   for (auto s(sqlite3_next_stmt(db, {}));
-    s && f(s);
+    s && !f(s);
     s = sqlite3_next_stmt(db, s));
 }
 
@@ -1242,38 +1242,6 @@ inline auto foreach_stmt(D const& db, A&& ...args) noexcept(
 )
 {
   return foreach_stmt(db.get(), std::forward<A>(args)...);
-}
-
-template <typename F, typename S>
-inline auto foreach_stmt(S&& s, F const f) noexcept(noexcept(f()))
-{
-  decltype(exec(std::forward<S>(s))) r;
-
-  for (;;)
-  {
-    switch (r = exec(std::forward<S>(s)))
-    {
-      case SQLITE_ROW:
-        if (f())
-        {
-          break;
-        }
-        else
-        {
-          continue;
-        }
-
-      case SQLITE_DONE:;
-        break;
-
-      default:
-        assert(!"unhandled result from exec");
-    }
-
-    break;
-  }
-
-  return r;
 }
 
 namespace
@@ -1420,7 +1388,7 @@ inline void reset_all(sqlite3* const db) noexcept
     {
       squ::reset(s);
 
-      return true;
+      return false;
     }
   );
 }
@@ -1445,7 +1413,7 @@ inline void reset_all_busy(sqlite3* const db) noexcept
       }
       // else do nothing
 
-      return true;
+      return false;
     }
   );
 }
