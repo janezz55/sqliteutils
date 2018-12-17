@@ -632,7 +632,7 @@ T make_tuple(sqlite3_stmt* const s, int const i,
 {
   return T{
     get<std::tuple_element_t<I, T>>(s,
-      i + count_types_n<I, 0, typename std::tuple_element_t<I, T>...>{}
+      i + count_types_n<I, 0, std::tuple_element_t<I, T>...>{}
     )...
   };
 }
