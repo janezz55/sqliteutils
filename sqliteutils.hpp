@@ -441,50 +441,58 @@ inline auto exec_multi(D const& db, A&& ...args) noexcept(
 //get/////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline std::enable_if_t<
-  std::is_integral<remove_cvr_t<T> >{} &&
-  (sizeof(T) <= sizeof(int)),
-  remove_cvr_t<T>
+  std::is_integral<T>{} &&
+  (sizeof(T) <= sizeof(std::int32_t)),
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
+  static_assert(!std::is_reference<T>{});
   return sqlite3_column_int(s, i);
 }
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_integral<remove_cvr_t<T> >{} &&
-  (sizeof(T) > sizeof(int)),
-  remove_cvr_t<T>
+  std::is_integral<T>{} &&
+  (sizeof(T) > sizeof(std::int32_t)),
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
+  static_assert(!std::is_reference<T>{});
   return sqlite3_column_int64(s, i);
 }
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_floating_point<remove_cvr_t<T> >{}, remove_cvr_t<T>
+  std::is_floating_point<T>{},
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
+  static_assert(!std::is_reference<T>{});
   return sqlite3_column_double(s, i);
 }
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<remove_cvr_t<T>, char const*>{}, remove_cvr_t<T>
+  std::is_same<T, char const*>{},
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
+  static_assert(!std::is_reference<T>{});
   return reinterpret_cast<char const*>(sqlite3_column_text(s, i));
 }
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<remove_cvr_t<T>, charpair_t>{}, remove_cvr_t<T>
+  std::is_same<T, charpair_t>{},
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
+  static_assert(!std::is_reference<T>{});
   return {
     get<char const*>(s, i),
     sqlite3_column_bytes(s, i)
@@ -493,10 +501,12 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<remove_cvr_t<T>, std::string>{}, remove_cvr_t<T>
+  std::is_same<T, std::string>{},
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0)
 {
+  static_assert(!std::is_reference<T>{});
   return {
     get<char const*>(s, i),
     std::string::size_type(sqlite3_column_bytes(s, i))
@@ -505,19 +515,23 @@ get(sqlite3_stmt* const s, int const i = 0)
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<remove_cvr_t<T>, void const*>{}, remove_cvr_t<T>
+  std::is_same<T, void const*>{},
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
+  static_assert(!std::is_reference<T>{});
   return sqlite3_column_blob(s, i);
 }
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<remove_cvr_t<T>, blobpair_t>{}, remove_cvr_t<T>
+  std::is_same<T, blobpair_t>{},
+  T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
+  static_assert(!std::is_reference<T>{});
   return {
     get<void const*>(s, i),
     sqlite3_column_bytes(s, i)
@@ -596,13 +610,13 @@ struct count_types_n<0, S, A, B...> : std::integral_constant<int, S>
 {
 };
 
-template <typename T, std::size_t ...Is>
+template <typename T, std::size_t ...I>
 T make_tuple(sqlite3_stmt* const s, int const i,
-  std::index_sequence<Is...> const)
+  std::index_sequence<I...>)
 {
   return T{
-    get<std::tuple_element_t<Is, T>>(s,
-      i + count_types_n<Is, 0, typename std::tuple_element<Is, T>::type...>{}
+    get<std::tuple_element_t<I, T>>(s,
+      i + count_types_n<I, 0, typename std::tuple_element_t<I, T>...>{}
     )...
   };
 }
@@ -611,12 +625,12 @@ T make_tuple(sqlite3_stmt* const s, int const i,
 
 template <typename T>
 inline std::enable_if_t<
-  (detail::is_std_pair<remove_cvr_t<T> >{} ||
-  detail::is_std_tuple<remove_cvr_t<T> >{}) &&
-  !std::is_same<remove_cvr_t<T>, blobpair_t>{} &&
-  !std::is_same<remove_cvr_t<T>, charpair_t>{} &&
-  !std::is_same<remove_cvr_t<T>, charpair16_t>{} &&
-  !std::is_same<remove_cvr_t<T>, nullpair_t>{},
+  (detail::is_std_pair<T>{} ||
+  detail::is_std_tuple<T>{}) &&
+  !std::is_same<T, blobpair_t>{} &&
+  !std::is_same<T, charpair_t>{} &&
+  !std::is_same<T, charpair16_t>{} &&
+  !std::is_same<T, nullpair_t>{},
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept(
@@ -628,6 +642,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept(
   )
 )
 {
+  static_assert(!std::is_reference<T>{});
   return detail::make_tuple<T>(s,
     i,
     std::make_index_sequence<std::tuple_size<T>{}>()
@@ -637,21 +652,21 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept(
 template <typename ...A,
   typename = std::enable_if_t<bool(sizeof...(A) > 1)>
 >
-auto get(sqlite3_stmt* const s, int i = 0) noexcept(
+auto get(sqlite3_stmt* const s, int const i = 0) noexcept(
   noexcept(get<std::tuple<A...>>(s, i))
 )
 {
   return get<std::tuple<A...>>(s, i);
 }
 
-template <typename T, typename S,
+template <typename ...A, typename S,
   typename = typename std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto get(S const& s, int const i = 0) noexcept(
-  noexcept(get<T>(s.get(), i))
+  noexcept(get<A...>(s.get(), i))
 )
 {
-  return get<T>(s.get(), i);
+  return get<A...>(s.get(), i);
 }
 
 //execget/////////////////////////////////////////////////////////////////////
@@ -1144,7 +1159,7 @@ inline auto foreach_row(S&& s, F const f, int const i,
     switch (r = exec(std::forward<S>(s)))
     {
       case SQLITE_ROW:
-        if (f(get<A>(
+        if (f(get<remove_cvr_t<A>>(
           std::forward<S>(s),
           i + detail::count_types_n<Is, 0, A...>{})...)
         )
