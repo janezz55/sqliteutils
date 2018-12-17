@@ -562,58 +562,59 @@ struct is_std_tuple<std::tuple<A...> > : std::true_type { };
 
 template <typename A, typename ...B>
 struct count_types :
-  std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
+  std::integral_constant<std::size_t, count_types<A>{} + count_types<B...>{}>
 {
 };
 
 template <typename A>
-struct count_types<A> : std::integral_constant<int, 1>
+struct count_types<A> : std::integral_constant<std::size_t, 1>
 {
 };
 
 template <>
 struct count_types<blobpair_t> :
-  std::integral_constant<int, 1>
+  std::integral_constant<std::size_t, 1>
 {
 };
 
 template <>
 struct count_types<charpair_t> :
-  std::integral_constant<int, 1>
+  std::integral_constant<std::size_t, 1>
 {
 };
 
 template <>
 struct count_types<charpair16_t> :
-  std::integral_constant<int, 1>
+  std::integral_constant<std::size_t, 1>
 {
 };
 
 template <>
 struct count_types<nullpair_t> :
-  std::integral_constant<int, 1>
+  std::integral_constant<std::size_t, 1>
 {
 };
 
 template <typename A, typename B>
 struct count_types<std::pair<A, B> > :
-  std::integral_constant<int, count_types<A>{} + count_types<B>{}>
+  std::integral_constant<std::size_t, count_types<A>{} + count_types<B>{}>
 {
 };
 
 template <typename A, typename ...B>
 struct count_types<std::tuple<A, B...> > :
-  std::integral_constant<int, count_types<A>{} + count_types<B...>{}>
+  std::integral_constant<std::size_t, count_types<A>{} + count_types<B...>{}>
 {
 };
 
-template <std::size_t I, int S, typename A, typename ...B>
+template <std::size_t I, std::size_t S, typename A, typename ...B>
 struct count_types_n : count_types_n<I - 1, S + count_types<A>{}, B...>
 {
+  static_assert(I > 0);
 };
 
-template <int S, typename A, typename ...B>
-struct count_types_n<0, S, A, B...> : std::integral_constant<int, S>
+template <std::size_t S, typename A, typename ...B>
+struct count_types_n<0, S, A, B...> : std::integral_constant<std::size_t, S>
 {
 };
 
