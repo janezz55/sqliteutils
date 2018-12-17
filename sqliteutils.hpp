@@ -212,7 +212,7 @@ template <int I = 0, typename ...A>
 inline void set(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   detail::set<I + 1>(s,
-    std::make_index_sequence<sizeof...(A)>(),
+    std::index_sequence_for<A...>(),
     std::forward<A>(args)...
   );
 }
@@ -234,7 +234,7 @@ inline void rset(sqlite3_stmt* const s, A&& ...args) noexcept
   sqlite3_reset(s);
 
   detail::set<I + 1>(s,
-    std::make_index_sequence<sizeof...(A)>(),
+    std::index_sequence_for<A...>(),
     std::forward<A>(args)...
   );
 }
