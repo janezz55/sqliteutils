@@ -334,37 +334,45 @@ namespace detail
 
 class shared_maker
 {
-  std::string_view s_;
+  char const* const s_;
+  std::size_t const N_;
 
 public:
-  explicit shared_maker(std::string_view&& s) : s_(std::move(s))
+  constexpr explicit shared_maker(char const* const s,
+    std::size_t const N) :
+    s_(s),
+    N_(N)
   {
   }
 
   template <typename A>
-  auto operator()(A&& a) noexcept(
-    noexcept(make_shared(std::forward<A>(a), s_))
+  constexpr auto operator()(A&& a) noexcept(
+    noexcept(make_shared(std::forward<A>(a), std::string_view(s_, N_)))
   )
   {
-    return make_shared(std::forward<A>(a), s_);
+    return make_shared(std::forward<A>(a), std::string_view(s_, N_));
   }
 };
 
 class unique_maker
 {
-  std::string_view s_;
+  char const* const s_;
+  std::size_t const N_;
 
 public:
-  explicit unique_maker(std::string_view&& s) : s_(std::move(s))
+  constexpr explicit unique_maker(char const* const s,
+    std::size_t const N) :
+    s_(s),
+    N_(N)
   {
   }
 
   template <typename A>
-  auto operator()(A&& a) noexcept(
-    noexcept(make_unique(std::forward<A>(a), s_))
+  constexpr auto operator()(A&& a) noexcept(
+    noexcept(make_unique(std::forward<A>(a), std::string_view(s_, N_)))
   )
   {
-    return make_unique(std::forward<A>(a), s_);
+    return make_unique(std::forward<A>(a), std::string_view(s_, N_));
   }
 };
 
@@ -373,16 +381,16 @@ public:
 namespace literals
 {
 
-inline auto operator "" _shared(char const* const s,
+constexpr inline auto operator "" _shared(char const* const s,
   std::size_t const N) noexcept
 {
-  return detail::shared_maker(std::string_view(s, N));
+  return detail::shared_maker(s, N);
 }
 
-inline auto operator "" _unique(char const* const s,
+constexpr inline auto operator "" _unique(char const* const s,
   std::size_t const N) noexcept
 {
-  return detail::unique_maker(std::string_view(s, N));
+  return detail::unique_maker(s, N);
 }
 
 }
