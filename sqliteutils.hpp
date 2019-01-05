@@ -329,6 +329,64 @@ inline auto make_shared(D const& db, A&& ...args) noexcept(
   return make_shared(db.get(), std::forward<A>(args)...);
 }
 
+namespace detail
+{
+
+class shared_maker
+{
+  std::string_view s_;
+
+public:
+  explicit shared_maker(std::string_view&& s) : s_(std::move(s))
+  {
+  }
+
+  template <typename A>
+  auto operator()(A&& a) noexcept(
+    noexcept(make_shared(std::forward<A>(a), s_))
+  )
+  {
+    return make_shared(std::forward<A>(a), s_);
+  }
+};
+
+class unique_maker
+{
+  std::string_view s_;
+
+public:
+  explicit unique_maker(std::string_view&& s) : s_(std::move(s))
+  {
+  }
+
+  template <typename A>
+  auto operator()(A&& a) noexcept(
+    noexcept(make_unique(std::forward<A>(a), s_))
+  )
+  {
+    return make_unique(std::forward<A>(a), s_);
+  }
+};
+
+}
+
+namespace literals
+{
+
+inline auto operator "" _shared(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::shared_maker(std::string_view(s, N));
+}
+
+inline auto operator "" _unique(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::unique_maker(std::string_view(s, N));
+}
+
+}
+
 //exec////////////////////////////////////////////////////////////////////////
 template <int I = 0>
 inline auto exec(sqlite3_stmt* const s) noexcept

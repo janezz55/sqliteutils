@@ -4,6 +4,8 @@
 
 #include "sqliteutils.hpp"
 
+using namespace squ::literals;
+
 int main(int, char*[])
 {
   auto const db(squ::open_unique("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
@@ -27,9 +29,7 @@ int main(int, char*[])
   );
 
   auto const stmt(
-    squ::make_unique(db,
-      "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"
-    )
+    "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"_unique(db)
   );
 
   squ::foreach_row(stmt,
