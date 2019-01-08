@@ -334,12 +334,10 @@ namespace detail
 
 struct maker
 {
-  char const* const s_;
-  std::size_t const N_;
+  std::string_view const s_;
 
   explicit maker(char const* const s, std::size_t const N) :
-    s_(s),
-    N_(N)
+    s_(s, N)
   {
   }
 };
@@ -350,10 +348,10 @@ struct shared_maker : protected maker
 
   template <typename A>
   auto operator()(A&& a) && noexcept (
-    noexcept(make_shared(std::forward<A>(a), std::string_view(s_, N_)))
+    noexcept(make_shared(std::forward<A>(a), s_))
   )
   {
-    return make_shared(std::forward<A>(a), std::string_view(s_, N_));
+    return make_shared(std::forward<A>(a), s_);
   }
 };
 
@@ -363,10 +361,10 @@ struct unique_maker : protected maker
 
   template <typename A>
   auto operator()(A&& a) && noexcept (
-    noexcept(make_unique(std::forward<A>(a), std::string_view(s_, N_)))
+    noexcept(make_unique(std::forward<A>(a), s_))
   )
   {
-    return make_unique(std::forward<A>(a), std::string_view(s_, N_));
+    return make_unique(std::forward<A>(a), s_);
   }
 };
 
