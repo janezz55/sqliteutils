@@ -332,21 +332,25 @@ inline auto make_shared(D const& db, A&& ...args) noexcept(
 namespace detail
 {
 
-class shared_maker
+struct maker
 {
   char const* const s_;
   std::size_t const N_;
 
-public:
-  constexpr explicit shared_maker(char const* const s,
-    std::size_t const N) :
+  explicit maker(char const* const s, std::size_t const N) :
     s_(s),
     N_(N)
   {
   }
+};
+
+
+struct shared_maker : protected maker
+{
+  using maker::maker;
 
   template <typename A>
-  constexpr auto operator()(A&& a) noexcept(
+  auto operator()(A&& a) && noexcept (
     noexcept(make_shared(std::forward<A>(a), std::string_view(s_, N_)))
   )
   {
@@ -354,21 +358,12 @@ public:
   }
 };
 
-class unique_maker
+struct unique_maker : protected maker
 {
-  char const* const s_;
-  std::size_t const N_;
-
-public:
-  constexpr explicit unique_maker(char const* const s,
-    std::size_t const N) :
-    s_(s),
-    N_(N)
-  {
-  }
+  using maker::maker;
 
   template <typename A>
-  constexpr auto operator()(A&& a) noexcept(
+  auto operator()(A&& a) && noexcept (
     noexcept(make_unique(std::forward<A>(a), std::string_view(s_, N_)))
   )
   {
@@ -381,13 +376,13 @@ public:
 namespace literals
 {
 
-constexpr inline auto operator "" _shared(char const* const s,
+inline auto operator "" _shared(char const* const s,
   std::size_t const N) noexcept
 {
   return detail::shared_maker(s, N);
 }
 
-constexpr inline auto operator "" _unique(char const* const s,
+inline auto operator "" _unique(char const* const s,
   std::size_t const N) noexcept
 {
   return detail::unique_maker(s, N);
