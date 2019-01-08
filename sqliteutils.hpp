@@ -344,7 +344,6 @@ struct maker
   }
 };
 
-
 struct shared_maker : protected maker
 {
   using maker::maker;
