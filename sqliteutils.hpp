@@ -331,72 +331,6 @@ inline auto make_shared(D const& db, A&& ...args) noexcept(
   return make_shared(db.get(), std::forward<A>(args)...);
 }
 
-namespace detail
-{
-
-struct maker
-{
-  std::string_view const s_;
-
-  explicit maker(char const* const s, std::size_t const N) :
-    s_(s, N)
-  {
-  }
-};
-
-struct shared_maker : protected maker
-{
-  using maker::maker;
-
-  template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-      noexcept(make_shared(std::forward<A>(a),
-        tfm::format(s_.data(), std::forward<B>(b)...)
-      )
-    )
-  )
-  {
-    return make_shared(std::forward<A>(a),
-      tfm::format(s_.data(), std::forward<B>(b)...));
-  }
-};
-
-struct unique_maker : protected maker
-{
-  using maker::maker;
-
-  template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-      noexcept(make_shared(std::forward<A>(a),
-        tfm::format(s_.data(), std::forward<B>(b)...)
-      )
-    )
-  )
-  {
-    return make_unique(std::forward<A>(a),
-      tfm::format(s_.data(), std::forward<B>(b)...));
-  }
-};
-
-}
-
-namespace literals
-{
-
-inline auto operator "" _shared(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::shared_maker(s, N);
-}
-
-inline auto operator "" _unique(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::unique_maker(s, N);
-}
-
-}
-
 //exec////////////////////////////////////////////////////////////////////////
 template <int I = 0>
 inline auto exec(sqlite3_stmt* const s) noexcept
@@ -489,7 +423,9 @@ exec_multi(sqlite3* const db, T&& a) noexcept
 template <typename T>
 inline std::enable_if_t<
   std::is_same<std::string, std::decay_t<T> >{},
-  decltype(exec_multi(std::declval<sqlite3*>(), std::declval<T>()))
+  decltype(sqlite3_exec(std::declval<sqlite3*>(), std::declval<T>().c_str(),
+    nullptr, nullptr, nullptr)
+  )
 >
 exec_multi(sqlite3* const db, T&& a) noexcept
 {
@@ -504,6 +440,119 @@ inline auto exec_multi(D const& db, A&& ...args) noexcept(
 )
 {
   return exec_multi(db.get(), std::forward<A>(args)...);
+}
+
+namespace detail
+{
+
+struct maker
+{
+  std::string_view const s_;
+
+  explicit maker(char const* const s, std::size_t const N) :
+    s_(s, N)
+  {
+  }
+};
+
+struct exec_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A, typename ...B>
+  auto operator()(A&& a, B&& ...b) && noexcept(
+      noexcept(exec(std::forward<A>(a),
+        tfm::format(s_.data(), std::forward<B>(b)...)
+      )
+    )
+  )
+  {
+    return exec(std::forward<A>(a),
+      tfm::format(s_.data(), std::forward<B>(b)...));
+  }
+};
+
+struct exec_multi_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A, typename ...B>
+  auto operator()(A&& a, B&& ...b) && noexcept(
+      noexcept(exec_multi(std::forward<A>(a),
+        tfm::format(s_.data(), std::forward<B>(b)...)
+      )
+    )
+  )
+  {
+    return exec_multi(std::forward<A>(a),
+      tfm::format(s_.data(), std::forward<B>(b)...));
+  }
+};
+
+
+struct shared_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A, typename ...B>
+  auto operator()(A&& a, B&& ...b) && noexcept(
+      noexcept(make_shared(std::forward<A>(a),
+        tfm::format(s_.data(), std::forward<B>(b)...)
+      )
+    )
+  )
+  {
+    return make_shared(std::forward<A>(a),
+      tfm::format(s_.data(), std::forward<B>(b)...));
+  }
+};
+
+struct unique_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A, typename ...B>
+  auto operator()(A&& a, B&& ...b) && noexcept(
+      noexcept(make_shared(std::forward<A>(a),
+        tfm::format(s_.data(), std::forward<B>(b)...)
+      )
+    )
+  )
+  {
+    return make_unique(std::forward<A>(a),
+      tfm::format(s_.data(), std::forward<B>(b)...));
+  }
+};
+
+}
+
+namespace literals
+{
+
+inline auto operator "" _squexec(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::exec_maker(s, N);
+}
+
+inline auto operator "" _squexecmulti(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::exec_multi_maker(s, N);
+}
+
+inline auto operator "" _squshared(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::shared_maker(s, N);
+}
+
+inline auto operator "" _squunique(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::unique_maker(s, N);
+}
+
 }
 
 //get/////////////////////////////////////////////////////////////////////////
