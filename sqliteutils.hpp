@@ -638,7 +638,6 @@ get(sqlite3_stmt* const s, int const i = 0)
   };
 }
 
-
 template <typename T>
 inline std::enable_if_t<
   std::is_same<T, void const*>{},
