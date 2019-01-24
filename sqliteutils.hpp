@@ -144,6 +144,13 @@ inline void set(sqlite3_stmt* const s, std::string const& v) noexcept
     SQLITE_UTF8);
 }
 
+template <int I>
+inline void set(sqlite3_stmt* const s, std::string_view const& v) noexcept
+{
+  sqlite3_bind_text64(s, I, v.data(), v.size(), SQLITE_TRANSIENT,
+    SQLITE_UTF8);
+}
+
 template <int I, std::size_t N>
 inline void set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
 {
