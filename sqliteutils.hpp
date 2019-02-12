@@ -1046,16 +1046,9 @@ inline auto open_unique(char const* const filename, int const flags,
 {
   sqlite3* db;
 
-  if (SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs))
-  {
-    return unique_db_t(db);
-  }
-  else
-  {
-    detail::sqlite3_deleter()(db);
-
-    return unique_db_t();
-  }
+  return SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs) ?
+    unique_db_t(db) :
+    (detail::sqlite3_deleter()(db), unique_db_t());
 }
 
 template <typename ...A>
