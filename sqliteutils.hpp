@@ -520,7 +520,7 @@ struct unique_maker : protected maker
 
   template <typename A, typename ...B>
   auto operator()(A&& a, B&& ...b) && noexcept(
-      noexcept(make_shared(std::forward<A>(a),
+      noexcept(make_unique(std::forward<A>(a),
         tfm::format(s_.data(), std::forward<B>(b)...)
       )
     )
