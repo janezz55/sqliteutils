@@ -33,6 +33,8 @@
 
 #include <memory>
 
+#include <optional>
+
 #include <string>
 
 #include <string_view>
@@ -342,17 +344,17 @@ inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
 template <int I = 0>
 inline auto rexec(sqlite3_stmt* const s) noexcept
 {
-  sqlite3_reset(s);
+  auto const r(sqlite3_reset(s));
 
-  return sqlite3_step(s);
+  return SQLITE_OK == r ? sqlite3_step(s) : r;
 }
 
 template <int I = 0, typename ...A>
 inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
-  sqlite3_reset(s);
+  auto const r(sqlite3_reset(s));
 
-  return exec<I>(s, std::forward<A>(args)...);
+  return SQLITE_OK == r ? exec<I>(s, std::forward<A>(args)...) : r;
 }
 
 // forwarders
@@ -793,14 +795,17 @@ inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
   )
 )
 {
-#ifndef NDEBUG
   auto const r(exec<I>(std::forward<S>(s), std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
-#else
-  exec<I>(std::forward<S>(s), std::forward<A>(args)...);
-#endif // NDEBUG
 
-  return get<T>(s, i);
+  if (SQLITE_ROW == r)
+  {
+    return std::optional<T>(get<T>(s, i));
+  }
+  else
+  {
+    return std::optional<T>();
+  }
 }
 
 template <typename T, int I = 0, typename S, typename ...A>
@@ -810,14 +815,17 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
   )
 )
 {
-#ifndef NDEBUG
   auto const r(rexec<I>(std::forward<S>(s), std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
-#else
-  rexec<I>(std::forward<S>(s), std::forward<A>(args)...);
-#endif // NDEBUG
 
-  return get<T>(s, i);
+  if (SQLITE_ROW == r)
+  {
+    return std::optional<T>(get<T>(s, i));
+  }
+  else
+  {
+    return std::optional<T>();
+  }
 }
 
 template <typename T, int I = 0, typename D, typename A, typename ...B,
