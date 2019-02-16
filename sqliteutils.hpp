@@ -267,13 +267,11 @@ inline auto make_unique(sqlite3* const db,
 {
   sqlite3_stmt* s;
 
-#ifndef NDEBUG
-  auto result(sqlite3_prepare_v3(db, sv.data(), sv.size(), fl, &s, nullptr));
+  auto const result(sqlite3_prepare_v3(
+    db, sv.data(), sv.size(), fl, &s, nullptr));
   assert(SQLITE_OK == result);
-#else
-  sqlite3_prepare_v3(db, a, size, fl, &s, nullptr);
-#endif // NDEBUG
-  return unique_stmt_t(s);
+
+  return SQLITE_OK == result ? unique_stmt_t(s) : unique_stmt_t(nullptr);
 }
 
 template <int fl = 0, std::size_t N>
@@ -300,13 +298,13 @@ inline auto make_shared(sqlite3* const db,
 {
   sqlite3_stmt* s;
 
-#ifndef NDEBUG
-  auto result(sqlite3_prepare_v3(db, sv.data(), sv.size(), fl, &s, nullptr));
+  auto const result(sqlite3_prepare_v3(
+    db, sv.data(), sv.size(), fl, &s, nullptr));
   assert(SQLITE_OK == result);
-#else
-  sqlite3_prepare_v3(db, a, size, fl, &s, nullptr);
-#endif // NDEBUG
-  return shared_stmt_t(s, detail::sqlite3_stmt_deleter());
+
+  return SQLITE_OK == result ?
+    shared_stmt_t(s, detail::sqlite3_stmt_deleter()) :
+    shared_stmt_t(nullptr);
 }
 
 template <int fl = 0, std::size_t N>
