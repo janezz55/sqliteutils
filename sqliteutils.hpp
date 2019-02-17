@@ -78,113 +78,125 @@ struct sqlite3_stmt_deleter
 };
 
 template <int I>
-inline void set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
+inline auto set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
 {
-  sqlite3_bind_blob64(s, I, v.first, v.second, SQLITE_STATIC);
+  return sqlite3_bind_blob64(s, I, v.first, v.second, SQLITE_STATIC);
 }
 
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_floating_point<T>{},
-  void
+  int
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
-  sqlite3_bind_double(s, I, v);
+  return sqlite3_bind_double(s, I, v);
 }
 
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
-  void
+  int
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
-  sqlite3_bind_int(s, I, v);
+  return sqlite3_bind_int(s, I, v);
 }
 
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
-  void
+  int
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
-  sqlite3_bind_int64(s, I, v);
+  return sqlite3_bind_int64(s, I, v);
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, std::nullptr_t const) noexcept
+inline auto set(sqlite3_stmt* const s, std::nullptr_t const) noexcept
 {
-  sqlite3_bind_null(s, I);
+  return sqlite3_bind_null(s, I);
 }
 
 template <int I, std::size_t N>
-inline void set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
+inline auto set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
 {
-  sqlite3_bind_text64(s, I, v, N, SQLITE_STATIC, SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v, N, SQLITE_STATIC, SQLITE_UTF8);
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, charpair_t const& v) noexcept
+inline auto set(sqlite3_stmt* const s, charpair_t const& v) noexcept
 {
-  sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT, SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT,
+    SQLITE_UTF8);
 }
 
 template <int I, typename T,
   typename = std::enable_if_t<std::is_same<T, char>{} >
 >
-inline void set(sqlite3_stmt* const s, T const* const& v) noexcept
+inline auto set(sqlite3_stmt* const s, T const* const& v) noexcept
 {
-  sqlite3_bind_text64(s, I, v, -1, SQLITE_TRANSIENT, SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v, -1, SQLITE_TRANSIENT, SQLITE_UTF8);
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, std::string const& v) noexcept
+inline auto set(sqlite3_stmt* const s, std::string const& v) noexcept
 {
-  sqlite3_bind_text64(s, I, v.c_str(), v.size(), SQLITE_TRANSIENT,
+  return sqlite3_bind_text64(s, I, v.c_str(), v.size(), SQLITE_TRANSIENT,
     SQLITE_UTF8);
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, std::string_view const& v) noexcept
+inline auto set(sqlite3_stmt* const s, std::string_view const& v) noexcept
 {
-  sqlite3_bind_text64(s, I, v.data(), v.size(), SQLITE_TRANSIENT,
+  return sqlite3_bind_text64(s, I, v.data(), v.size(), SQLITE_TRANSIENT,
     SQLITE_UTF8);
 }
 
 template <int I, std::size_t N>
-inline void set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
+inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
 {
-  sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(&*v), N,
+  return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(&*v), N,
     SQLITE_STATIC, SQLITE_UTF16);
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, char16_t const* v) noexcept
+inline auto set(sqlite3_stmt* const s, char16_t const* v) noexcept
 {
-  sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v), -1,
+  return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v), -1,
     SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, charpair16_t const& v) noexcept
+inline auto set(sqlite3_stmt* const s, charpair16_t const& v) noexcept
 {
-  sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
+  return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
     v.second, SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I>
-inline void set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
+inline auto set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
 {
-  sqlite3_bind_zeroblob64(s, I, v.second);
+  return sqlite3_bind_zeroblob64(s, I, v.second);
 }
 
 template <int I, std::size_t ...Is, typename ...A>
-void set(sqlite3_stmt* const s, std::index_sequence<Is...> const,
+auto set(sqlite3_stmt* const s, std::index_sequence<Is...> const,
   A&& ...args) noexcept(noexcept((set<I + Is>(s, args), ...)))
 {
-  (set<I + Is>(s, args), ...);
+  int r(SQLITE_OK);
+
+  (
+    (
+      r = SQLITE_OK == r ?
+        (SQLITE_OK == set<I + Is>(s, args) ? SQLITE_OK : r) :
+        r
+    ),
+    ...
+  );
+
+  return r;
 }
 
 }
@@ -220,9 +232,9 @@ using is_stmt_t =
 
 //set/////////////////////////////////////////////////////////////////////////
 template <int I = 0, typename ...A>
-inline void set(sqlite3_stmt* const s, A&& ...args) noexcept
+inline auto set(sqlite3_stmt* const s, A&& ...args) noexcept
 {
-  detail::set<I + 1>(s,
+  return detail::set<I + 1>(s,
     std::index_sequence_for<A...>(),
     std::forward<A>(args)...
   );
@@ -240,14 +252,13 @@ inline auto set(S const& s, A&& ...args) noexcept(
 
 //rset////////////////////////////////////////////////////////////////////////
 template <int I = 0, typename ...A>
-inline void rset(sqlite3_stmt* const s, A&& ...args) noexcept
+inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept
 {
-  sqlite3_reset(s);
+  auto const r(sqlite3_reset(s));
 
-  detail::set<I + 1>(s,
-    std::index_sequence_for<A...>(),
-    std::forward<A>(args)...
-  );
+  return SQLITE_OK == r ?
+    set(s, std::forward<A>(args)...) :
+    r;
 }
 
 template <int I = 0, typename S, typename ...A,
@@ -334,9 +345,9 @@ inline auto exec(sqlite3_stmt* const s) noexcept
 template <int I = 0, typename ...A>
 inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
-  set<I>(s, std::forward<A>(args)...);
+  auto const r(set<I>(s, std::forward<A>(args)...));
 
-  return exec(s);
+  return SQLITE_OK == r ? exec(s) : r;
 }
 
 template <int I = 0>
