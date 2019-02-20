@@ -1023,16 +1023,9 @@ inline auto open_shared(char const* const filename, int const flags,
 {
   sqlite3* db;
 
-  if (SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs))
-  {
-    return shared_db_t(db, detail::sqlite3_deleter());
-  }
-  else
-  {
-    detail::sqlite3_deleter()(db);
-
-    return shared_db_t();
-  }
+  return SQLITE_OK == sqlite3_open_v2(filename, &db, flags, zvfs) ?
+    shared_db_t(db, detail::sqlite3_deleter()) :
+    (detail::sqlite3_deleter()(db), shared_db_t());
 }
 
 template <typename ...A>
