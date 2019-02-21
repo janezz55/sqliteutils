@@ -807,14 +807,9 @@ inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
   auto const r(exec<I>(std::forward<S>(s), std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
 
-  if (SQLITE_ROW == r)
-  {
-    return std::optional<T>(get<T>(s, i));
-  }
-  else
-  {
-    return std::optional<T>();
-  }
+  return SQLITE_ROW == r ?
+    std::optional<T>(get<T>(s, i)) :
+    std::optional<T>();
 }
 
 template <typename T, int I = 0, typename S, typename ...A>
@@ -827,14 +822,9 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
   auto const r(rexec<I>(std::forward<S>(s), std::forward<A>(args)...));
   assert(SQLITE_ROW == r);
 
-  if (SQLITE_ROW == r)
-  {
-    return std::optional<T>(get<T>(s, i));
-  }
-  else
-  {
-    return std::optional<T>();
-  }
+  return SQLITE_ROW == r ?
+    std::optional<T>(get<T>(s, i)) :
+    std::optional<T>();
 }
 
 template <typename T, int I = 0, typename D, typename A, typename ...B,
