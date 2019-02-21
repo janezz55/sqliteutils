@@ -1061,7 +1061,7 @@ inline auto reset(sqlite3_stmt* const s) noexcept
   return sqlite3_reset(s);
 }
 
-template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}>>
 inline auto reset(S const& s) noexcept(noexcept(reset(s.get())))
 {
   return reset(s.get());
@@ -1082,7 +1082,7 @@ inline auto size(S const& s, int const i = 0) noexcept(
 }
 
 template <typename ...A>
-inline auto bytes(A&& ...args) noexcept(
+inline auto column_bytes(A&& ...args) noexcept(
   noexcept(size(std::forward<A>(args)...))
 )
 {
