@@ -805,7 +805,7 @@ inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
 )
 {
   auto const r(exec<I>(std::forward<S>(s), std::forward<A>(args)...));
-  assert(SQLITE_ROW == r);
+  assert((SQLITE_DONE == r) || (SQLITE_ROW == r));
 
   return SQLITE_ROW == r ?
     std::optional<T>(get<T>(s, i)) :
