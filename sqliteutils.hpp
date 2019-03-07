@@ -296,7 +296,7 @@ template <int fl = 0, typename D, typename ...A,
   typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto make_unique(D const& db, A&& ...args) noexcept(
-  noexcept(make_unique(db.get(), std::forward<A>(args)...))
+  noexcept(make_unique<fl>(db.get(), std::forward<A>(args)...))
 )
 {
   return make_unique<fl>(db.get(), std::forward<A>(args)...);
@@ -347,7 +347,7 @@ inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   auto const r(set<I>(s, std::forward<A>(args)...));
 
-  return SQLITE_OK == r ? exec(s) : r;
+  return SQLITE_OK == r ? sqlite3_step(s) : r;
 }
 
 template <int I = 0>
@@ -820,7 +820,7 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
 )
 {
   auto const r(rexec<I>(std::forward<S>(s), std::forward<A>(args)...));
-  assert(SQLITE_ROW == r);
+  assert((SQLITE_DONE == r) || (SQLITE_ROW == r));
 
   return SQLITE_ROW == r ?
     std::optional<T>(get<T>(s, i)) :
