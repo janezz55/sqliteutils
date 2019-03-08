@@ -1255,9 +1255,9 @@ constexpr inline auto extract_signature(F const&) noexcept ->
   return extract_signature(&F::operator());
 }
 
-template <typename R, typename ...A, typename F, typename S, std::size_t ...I>
+template <typename ...A, typename F, typename S, std::size_t ...I>
 inline auto foreach_row(S&& s, F const f, int const i,
-  signature<R(A...)> const, std::index_sequence<I...> const) noexcept(
+  signature<bool(A...)> const, std::index_sequence<I...> const) noexcept(
     noexcept(f(std::declval<remove_cvr_t<A>>()...))
   )
 {
@@ -1279,6 +1279,37 @@ inline auto foreach_row(S&& s, F const f, int const i,
         {
           continue;
         }
+
+      case SQLITE_DONE:;
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return r;
+}
+
+template <typename ...A, typename F, typename S, std::size_t ...I>
+inline auto foreach_row(S&& s, F const f, int const i,
+  signature<void(A...)> const, std::index_sequence<I...> const) noexcept(
+    noexcept(f(std::declval<remove_cvr_t<A>>()...))
+  )
+{
+  decltype(exec(s)) r;
+
+  for (;;)
+  {
+    switch (r = exec(std::forward<S>(s)))
+    {
+      case SQLITE_ROW:
+        f(get<remove_cvr_t<A>>(
+          std::forward<S>(s),
+          i + detail::count_types_n<I, 0, A...>{})...);
+        continue;
 
       case SQLITE_DONE:;
         break;
