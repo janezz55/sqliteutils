@@ -230,6 +230,33 @@ using is_stmt_t =
     std::is_same<remove_cvr_t<T>, unique_stmt_t>{}
   >;
 
+//errmsg//////////////////////////////////////////////////////////////////////
+inline auto errmsg(sqlite3* const db) noexcept
+{
+  return sqlite3_errmsg(db);
+}
+
+template <typename D,
+  typename = std::enable_if_t<is_db_t<D>{}>
+>
+inline auto errmsg(D const& db) noexcept
+{
+  return sqlite3_errmsg(db.get());
+}
+
+inline auto errmsg16(sqlite3* const db) noexcept
+{
+  return sqlite3_errmsg16(db);
+}
+
+template <typename D,
+  typename = std::enable_if_t<is_db_t<D>{}>
+>
+inline auto errmsg16(D const& db) noexcept
+{
+  return sqlite3_errmsg16(db.get());
+}
+
 //set/////////////////////////////////////////////////////////////////////////
 template <int I = 0, typename ...A>
 inline auto set(sqlite3_stmt* const s, A&& ...args) noexcept
@@ -1518,23 +1545,6 @@ inline auto push_back_n(S&& s, C& c, T&& n, int const i = 0)
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
   >(std::forward<S>(s), c, std::forward<T>(n), i);
-}
-
-//errmsg//////////////////////////////////////////////////////////////////////
-template <typename D,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
-inline auto errmsg(D const& db) noexcept
-{
-  return sqlite3_errmsg(db.get());
-}
-
-template <typename D,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
-inline auto errmsg16(D const& db) noexcept
-{
-  return sqlite3_errmsg16(db.get());
 }
 
 //reset_all///////////////////////////////////////////////////////////////////
