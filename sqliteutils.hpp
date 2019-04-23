@@ -297,7 +297,7 @@ inline auto rset(S const& s, A&& ...args) noexcept(
 }
 
 //make_unique/////////////////////////////////////////////////////////////////
-template <int fl = 0>
+template <unsigned fl = 0>
 inline auto make_unique(sqlite3* const db,
   std::string_view const& sv) noexcept
 {
@@ -310,14 +310,14 @@ inline auto make_unique(sqlite3* const db,
   return SQLITE_OK == result ? unique_stmt_t(s) : unique_stmt_t();
 }
 
-template <int fl = 0, std::size_t N>
+template <unsigned fl = 0, std::size_t N>
 inline auto make_unique(sqlite3* const db, char const (&a)[N]) noexcept
 {
   return make_unique<fl>(db, std::string_view(a, N));
 }
 
 // forwarders
-template <int fl = 0, typename D, typename ...A,
+template <unsigned fl = 0, typename D, typename ...A,
   typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto make_unique(D const& db, A&& ...args) noexcept(
@@ -328,14 +328,14 @@ inline auto make_unique(D const& db, A&& ...args) noexcept(
 }
 
 //make_shared/////////////////////////////////////////////////////////////////
-template <int fl = 0>
+template <unsigned fl = 0>
 inline auto make_shared(sqlite3* const db,
   std::string_view const& sv) noexcept
 {
   sqlite3_stmt* s;
 
-  auto const result(sqlite3_prepare_v3(
-    db, sv.data(), sv.size(), fl, &s, nullptr));
+  auto const result(sqlite3_prepare_v3(db, sv.data(), sv.size(),
+    fl, &s, nullptr));
   assert(SQLITE_OK == result);
 
   return SQLITE_OK == result ?
@@ -343,7 +343,7 @@ inline auto make_shared(sqlite3* const db,
     shared_stmt_t();
 }
 
-template <int fl = 0, std::size_t N>
+template <unsigned fl = 0, std::size_t N>
 inline auto make_shared(sqlite3* const db, char const (&a)[N]) noexcept
 {
   return make_shared<fl>(db, std::string_view(a, N));
@@ -396,8 +396,7 @@ template <int I = 0, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto exec(S const& s, A&& ...args) noexcept(
-  noexcept(exec(s.get(), std::forward<A>(args)...))
-)
+  noexcept(exec(s.get(), std::forward<A>(args)...)))
 {
   return exec<I>(s.get(), std::forward<A>(args)...);
 }
@@ -406,8 +405,7 @@ template <int I = 0, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_t<S>{}>
 >
 inline auto rexec(S const& s, A&& ...args) noexcept(
-  noexcept(rexec(s.get(), std::forward<A>(args)...))
-)
+  noexcept(rexec(s.get(), std::forward<A>(args)...)))
 {
   return rexec<I>(s.get(), std::forward<A>(args)...);
 }
@@ -437,36 +435,27 @@ inline auto exec(D const& db, A&& ...args) noexcept(
 }
 
 //exec_multi//////////////////////////////////////////////////////////////////
-template <typename T>
-inline std::enable_if_t<
-  std::is_same<char const*, std::decay_t<T> >{},
-  decltype(sqlite3_exec(std::declval<sqlite3*>(), std::declval<T>(),
-    nullptr, nullptr, nullptr)
-  )
->
-exec_multi(sqlite3* const db, T&& a) noexcept
+inline auto exec_multi(sqlite3* const db, char const* const a) noexcept
 {
   return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
 }
 
-template <typename T>
-inline std::enable_if_t<
-  std::is_same<std::string, std::decay_t<T> >{},
-  decltype(sqlite3_exec(std::declval<sqlite3*>(), std::declval<T>().c_str(),
-    nullptr, nullptr, nullptr)
-  )
->
-exec_multi(sqlite3* const db, T&& a) noexcept
+inline auto exec_multi(sqlite3* const db, std::string_view const& a) noexcept
 {
-  return exec_multi(db, a.c_str());
+  return exec_multi(db, a.data());
+}
+
+template <std::size_t N>
+inline auto exec_multi(sqlite3* const db, char const (&a)[N]) noexcept
+{
+  return exec_multi(db, std::string_view(a, N));
 }
 
 template <typename D, typename ...A,
   typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto exec_multi(D const& db, A&& ...args) noexcept(
-  noexcept(exec_multi(db.get(), std::forward<A>(args)...))
-)
+  noexcept(exec_multi(db.get(), std::forward<A>(args)...)))
 {
   return exec_multi(db.get(), std::forward<A>(args)...);
 }
