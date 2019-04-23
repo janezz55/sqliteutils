@@ -43,8 +43,6 @@
 
 #include <utility>
 
-#include "tinyformat/tinyformat.h"
-
 #include "sqlite3.h"
 
 namespace squ
@@ -480,8 +478,7 @@ struct maker
 {
   std::string_view const s_;
 
-  explicit maker(char const* const s, std::size_t const N) :
-    s_(s, N)
+  explicit maker(char const* const s, std::size_t const N) : s_(s, N)
   {
   }
 };
@@ -490,16 +487,11 @@ struct exec_maker : protected maker
 {
   using maker::maker;
 
-  template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-      noexcept(exec(std::forward<A>(a),
-        tfm::format(s_.data(), std::forward<B>(b)...)
-      )
-    )
-  )
+  template <typename A>
+  auto operator()(A&& a) && noexcept(
+      noexcept(exec(std::forward<A>(a), s_)))
   {
-    return exec(std::forward<A>(a),
-      tfm::format(s_.data(), std::forward<B>(b)...));
+    return exec(std::forward<A>(a), s_);
   }
 };
 
@@ -507,16 +499,11 @@ struct exec_multi_maker : protected maker
 {
   using maker::maker;
 
-  template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-      noexcept(exec_multi(std::forward<A>(a),
-        tfm::format(s_.data(), std::forward<B>(b)...)
-      )
-    )
-  )
+  template <typename A>
+  auto operator()(A&& a) && noexcept(
+      noexcept(exec_multi(std::forward<A>(a), s_)))
   {
-    return exec_multi(std::forward<A>(a),
-      tfm::format(s_.data(), std::forward<B>(b)...));
+    return exec_multi(std::forward<A>(a), s_);
   }
 };
 
@@ -525,16 +512,11 @@ struct shared_maker : protected maker
 {
   using maker::maker;
 
-  template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-      noexcept(make_shared(std::forward<A>(a),
-        tfm::format(s_.data(), std::forward<B>(b)...)
-      )
-    )
-  )
+  template <typename A>
+  auto operator()(A&& a) && noexcept(
+      noexcept(make_shared(std::forward<A>(a), s_)))
   {
-    return make_shared(std::forward<A>(a),
-      tfm::format(s_.data(), std::forward<B>(b)...));
+    return make_shared(std::forward<A>(a), s_);
   }
 };
 
@@ -542,16 +524,11 @@ struct unique_maker : protected maker
 {
   using maker::maker;
 
-  template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-      noexcept(make_unique(std::forward<A>(a),
-        tfm::format(s_.data(), std::forward<B>(b)...)
-      )
-    )
-  )
+  template <typename A>
+  auto operator()(A&& a) && noexcept(
+      noexcept(make_unique(std::forward<A>(a), s_)))
   {
-    return make_unique(std::forward<A>(a),
-      tfm::format(s_.data(), std::forward<B>(b)...));
+    return make_unique(std::forward<A>(a), s_);
   }
 };
 
