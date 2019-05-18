@@ -448,7 +448,7 @@ inline auto exec_multi(sqlite3* const db, std::string_view const& a) noexcept
 template <std::size_t N>
 inline auto exec_multi(sqlite3* const db, char const (&a)[N]) noexcept
 {
-  return exec_multi(db, std::string_view(a, N));
+  return exec_multi(db, a);
 }
 
 template <typename D, typename ...A,
@@ -495,7 +495,6 @@ struct exec_multi_maker : protected maker
     return exec_multi(std::forward<A>(a), s_);
   }
 };
-
 
 struct shared_maker : protected maker
 {
