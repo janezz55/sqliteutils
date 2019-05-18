@@ -525,25 +525,25 @@ struct unique_maker : protected maker
 namespace literals
 {
 
-inline auto operator "" _squexec(char const* const s,
+inline auto operator "" _exec(char const* const s,
   std::size_t const N) noexcept
 {
   return detail::exec_maker(s, N);
 }
 
-inline auto operator "" _squexecmulti(char const* const s,
+inline auto operator "" _execmulti(char const* const s,
   std::size_t const N) noexcept
 {
   return detail::exec_multi_maker(s, N);
 }
 
-inline auto operator "" _squshared(char const* const s,
+inline auto operator "" _shared(char const* const s,
   std::size_t const N) noexcept
 {
   return detail::shared_maker(s, N);
 }
 
-inline auto operator "" _squunique(char const* const s,
+inline auto operator "" _unique(char const* const s,
   std::size_t const N) noexcept
 {
   return detail::unique_maker(s, N);
