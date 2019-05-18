@@ -35,9 +35,6 @@ int main(int, char*[])
       std::string const& address, double const salary) noexcept
     {
       std::cout << name << " " << age << " " << address << " " << salary << std::endl;
-
-      // true indicates an error
-      return false;
     }
   );
 
