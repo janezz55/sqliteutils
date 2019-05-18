@@ -467,7 +467,7 @@ struct maker
 {
   std::string_view const s_;
 
-  explicit maker(char const* const s, std::size_t const N) : s_(s, N)
+  explicit maker(char const* const s, std::size_t const N) noexcept : s_(s, N)
   {
   }
 };
