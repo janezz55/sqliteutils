@@ -36,10 +36,10 @@ int main(int, char*[])
   "INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)"
   "VALUES(3, 'Teddy', 23, 'Norway', 20000.00 );"
   "INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)"
-  "VALUES(4, 'Mark', 25, 'Rich-Mond ', 65000.00)"_squexecmulti(db);
+  "VALUES(4, 'Mark', 25, 'Rich-Mond ', 65000.00)"_execmulti(db);
 
   auto const stmt(
-    "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"_squunique(db)
+    "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"_unique(db)
   );
 
   squ::foreach_row(stmt,
@@ -47,9 +47,6 @@ int main(int, char*[])
       std::string const& address, double const salary) noexcept
     {
       std::cout << name << " " << age << " " << address << " " << salary << std::endl;
-
-      // true indicates an error
-      return false;
     }
   );
 
