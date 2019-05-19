@@ -478,7 +478,7 @@ struct exec_maker : protected maker
 
   template <typename A>
   auto operator()(A&& a) && noexcept(
-      noexcept(exec(std::forward<A>(a), s_)))
+    noexcept(exec(std::forward<A>(a), s_)))
   {
     return exec(std::forward<A>(a), s_);
   }
@@ -490,7 +490,7 @@ struct exec_multi_maker : protected maker
 
   template <typename A>
   auto operator()(A&& a) && noexcept(
-      noexcept(exec_multi(std::forward<A>(a), s_)))
+    noexcept(exec_multi(std::forward<A>(a), s_)))
   {
     return exec_multi(std::forward<A>(a), s_);
   }
@@ -502,7 +502,7 @@ struct shared_maker : protected maker
 
   template <typename A>
   auto operator()(A&& a) && noexcept(
-      noexcept(make_shared(std::forward<A>(a), s_)))
+    noexcept(make_shared(std::forward<A>(a), s_)))
   {
     return make_shared(std::forward<A>(a), s_);
   }
@@ -514,7 +514,7 @@ struct unique_maker : protected maker
 
   template <typename A>
   auto operator()(A&& a) && noexcept(
-      noexcept(make_unique(std::forward<A>(a), s_)))
+    noexcept(make_unique(std::forward<A>(a), s_)))
   {
     return make_unique(std::forward<A>(a), s_);
   }
