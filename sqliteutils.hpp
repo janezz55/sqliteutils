@@ -476,11 +476,11 @@ struct exec_maker : protected maker
 {
   using maker::maker;
 
-  template <typename A>
-  auto operator()(A&& a) && noexcept(
-    noexcept(exec(std::forward<A>(a), s_)))
+  template <typename A, typename ...B>
+  auto operator()(A&& a, B&& ...b) && noexcept(
+    noexcept(exec(std::forward<A>(a), s_, std::forward<B>(b)...)))
   {
-    return exec(std::forward<A>(a), s_);
+    return exec(std::forward<A>(a), s_, std::forward<B>(b)...);
   }
 };
 
