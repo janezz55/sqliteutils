@@ -440,15 +440,15 @@ inline auto exec_multi(sqlite3* const db, char const* const a) noexcept
   return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
 }
 
-inline auto exec_multi(sqlite3* const db, std::string_view const& a) noexcept
-{
-  return exec_multi(db, a.data());
-}
-
 template <std::size_t N>
 inline auto exec_multi(sqlite3* const db, char const (&a)[N]) noexcept
 {
   return exec_multi(db, a);
+}
+
+inline auto exec_multi(sqlite3* const db, std::string_view const& a) noexcept
+{
+  return exec_multi(db, a.data());
 }
 
 template <typename D, typename ...A,
