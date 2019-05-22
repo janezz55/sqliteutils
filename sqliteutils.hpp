@@ -1346,7 +1346,7 @@ inline auto foreach_stmt(D const& db, A&& ...args) noexcept(
   return foreach_stmt(db.get(), std::forward<A>(args)...);
 }
 
-namespace
+namespace detail
 {
 
 //container_push//////////////////////////////////////////////////////////////
@@ -1410,7 +1410,7 @@ inline auto container_push(S&& s, C& c, T n, int const i)
 template <typename C, typename S>
 inline auto emplace(S&& s, C& c, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template emplace<typename C::value_type>),
     &C::template emplace<typename C::value_type>
   >(std::forward<S>(s), c, i);
@@ -1419,7 +1419,7 @@ inline auto emplace(S&& s, C& c, int const i = 0)
 template <typename C, typename S, typename T>
 inline auto emplace_n(S&& s, C& c, T&& n, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template emplace<typename C::value_type>),
     &C::template emplace<typename C::value_type>
   >(std::forward<S>(s), c, std::forward<T>(n), i);
@@ -1429,7 +1429,7 @@ inline auto emplace_n(S&& s, C& c, T&& n, int const i = 0)
 template <typename C, typename S>
 inline auto emplace_back(S&& s, C& c, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template emplace_back<typename C::value_type>),
     &C::template emplace_back<typename C::value_type>
   >(std::forward<S>(s), c, i);
@@ -1438,7 +1438,7 @@ inline auto emplace_back(S&& s, C& c, int const i = 0)
 template <typename C, typename S, typename T>
 inline auto emplace_back_n(S&& s, C& c, T&& n, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template emplace_back<typename C::value_type>),
     &C::template emplace_back<typename C::value_type>
   >(std::forward<S>(s), c, std::forward<T>(n), i);
@@ -1448,7 +1448,7 @@ inline auto emplace_back_n(S&& s, C& c, T&& n, int const i = 0)
 template <typename C, typename S>
 inline auto insert(S&& s, C& c, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template insert<typename C::value_type>),
     &C::template insert<typename C::value_type>
   >(std::forward<S>(s), c, i);
@@ -1457,7 +1457,7 @@ inline auto insert(S&& s, C& c, int const i = 0)
 template <typename C, typename S, typename T>
 inline auto insert_n(S&& s, C& c, T&& n, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template insert<typename C::value_type>),
     &C::template insert<typename C::value_type>
   >(std::forward<S>(s), c, std::forward<T>(n), i);
@@ -1467,7 +1467,7 @@ inline auto insert_n(S&& s, C& c, T&& n, int const i = 0)
 template <typename C, typename S>
 inline auto push_back(S&& s, C& c, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
   >(std::forward<S>(s), c, i);
@@ -1476,7 +1476,7 @@ inline auto push_back(S&& s, C& c, int const i = 0)
 template <typename C, typename S, typename T>
 inline auto push_back_n(S&& s, C& c, T&& n, int const i = 0)
 {
-  return container_push<
+  return detail::container_push<
     decltype(&C::template push_back<typename C::value_type>),
     &C::template push_back<typename C::value_type>
   >(std::forward<S>(s), c, std::forward<T>(n), i);
