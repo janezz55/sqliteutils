@@ -1180,6 +1180,45 @@ constexpr inline auto extract_signature(F const&) noexcept ->
 
 template <typename ...A, typename F, typename S, std::size_t ...I>
 inline auto foreach_row(S&& s, F const f, int const i,
+  signature<bool(std::size_t, A...)> const,
+  std::index_sequence<I...>) noexcept(
+    noexcept(f(std::declval<remove_cvr_t<A>>()...))
+  )
+{
+  decltype(exec(s)) r;
+
+  for (std::size_t i{};; ++i)
+  {
+    switch (r = exec(std::forward<S>(s)))
+    {
+      case SQLITE_ROW:
+        if (f(i, get<remove_cvr_t<A>>(
+          std::forward<S>(s),
+          i + detail::count_types_n<I, 0, A...>{})...)
+        )
+        {
+          break;
+        }
+        else
+        {
+          continue;
+        }
+
+      case SQLITE_DONE:;
+        break;
+
+      default:
+        assert(!"unhandled result from exec");
+    }
+
+    break;
+  }
+
+  return r;
+}
+
+template <typename ...A, typename F, typename S, std::size_t ...I>
+inline auto foreach_row(S&& s, F const f, int const i,
   signature<bool(A...)> const, std::index_sequence<I...> const) noexcept(
     noexcept(f(std::declval<remove_cvr_t<A>>()...))
   )
