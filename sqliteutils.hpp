@@ -460,115 +460,6 @@ inline auto execmulti(D const& db, A&& ...args) noexcept(
   return execmulti(db.get(), std::forward<A>(args)...);
 }
 
-namespace detail
-{
-
-struct maker
-{
-  std::string_view const s_;
-
-  explicit maker(char const* const s, std::size_t const N) noexcept : s_(s, N)
-  {
-  }
-};
-
-struct exec_maker : protected maker
-{
-  using maker::maker;
-
-  template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-    noexcept(exec(std::forward<A>(a), s_, std::forward<B>(b)...)))
-  {
-    return exec(std::forward<A>(a), s_, std::forward<B>(b)...);
-  }
-};
-
-struct execget_maker : protected maker
-{
-  using maker::maker;
-
-  template <typename A, typename ...B>
-  auto operator()(A&& a, int const i, B&& ...b) && noexcept(
-    noexcept(execget(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
-  {
-    return execget(std::forward<A>(a), s_, i, std::forward<B>(b)...);
-  }
-};
-
-struct execmulti_maker : protected maker
-{
-  using maker::maker;
-
-  template <typename A>
-  auto operator()(A&& a) && noexcept(
-    noexcept(execmulti(std::forward<A>(a), s_)))
-  {
-    return execmulti(std::forward<A>(a), s_);
-  }
-};
-
-struct shared_maker : protected maker
-{
-  using maker::maker;
-
-  template <typename A>
-  auto operator()(A&& a) && noexcept(
-    noexcept(make_shared(std::forward<A>(a), s_)))
-  {
-    return make_shared(std::forward<A>(a), s_);
-  }
-};
-
-struct unique_maker : protected maker
-{
-  using maker::maker;
-
-  template <typename A>
-  auto operator()(A&& a) && noexcept(
-    noexcept(make_unique(std::forward<A>(a), s_)))
-  {
-    return make_unique(std::forward<A>(a), s_);
-  }
-};
-
-}
-
-namespace literals
-{
-
-inline auto operator "" _exec(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::exec_maker(s, N);
-}
-
-inline auto operator "" _execmulti(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::execmulti_maker(s, N);
-}
-
-inline auto operator "" _execget(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::execget_maker(s, N);
-}
-
-inline auto operator "" _shared(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::shared_maker(s, N);
-}
-
-inline auto operator "" _unique(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::unique_maker(s, N);
-}
-
-}
-
 //get/////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline std::enable_if_t<
@@ -859,6 +750,115 @@ inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
     i,
     std::forward<B>(args)...
   );
+}
+
+namespace detail
+{
+
+struct maker
+{
+  std::string_view const s_;
+
+  explicit maker(char const* const s, std::size_t const N) noexcept : s_(s, N)
+  {
+  }
+};
+
+struct exec_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A, typename ...B>
+  auto operator()(A&& a, B&& ...b) && noexcept(
+    noexcept(exec(std::forward<A>(a), s_, std::forward<B>(b)...)))
+  {
+    return exec(std::forward<A>(a), s_, std::forward<B>(b)...);
+  }
+};
+
+struct execget_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename T, typename A, typename ...B>
+  auto operator()(A&& a, int const i = 0, B&& ...b) && noexcept(
+    noexcept(execget<T>(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
+  {
+    return execget<T>(std::forward<A>(a), s_, i, std::forward<B>(b)...);
+  }
+};
+
+struct execmulti_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A>
+  auto operator()(A&& a) && noexcept(
+    noexcept(execmulti(std::forward<A>(a), s_)))
+  {
+    return execmulti(std::forward<A>(a), s_);
+  }
+};
+
+struct shared_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A>
+  auto operator()(A&& a) && noexcept(
+    noexcept(make_shared(std::forward<A>(a), s_)))
+  {
+    return make_shared(std::forward<A>(a), s_);
+  }
+};
+
+struct unique_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A>
+  auto operator()(A&& a) && noexcept(
+    noexcept(make_unique(std::forward<A>(a), s_)))
+  {
+    return make_unique(std::forward<A>(a), s_);
+  }
+};
+
+}
+
+namespace literals
+{
+
+inline auto operator "" _exec(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::exec_maker(s, N);
+}
+
+inline auto operator "" _execget(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::execget_maker(s, N);
+}
+
+inline auto operator "" _execmulti(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::execmulti_maker(s, N);
+}
+
+inline auto operator "" _shared(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::shared_maker(s, N);
+}
+
+inline auto operator "" _unique(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::unique_maker(s, N);
+}
+
 }
 
 //col/////////////////////////////////////////////////////////////////////////
