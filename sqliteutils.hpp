@@ -734,12 +734,12 @@ template <typename T, int I = 0, typename D, typename A, typename ...B,
     is_db_t<D>{}
   >
 >
-inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
+inline auto execget(D&& db, A&& a, int const i = 0, B&& ...b) noexcept(
   noexcept(
     execget<T, I>(
       make_unique(std::forward<D>(db), std::forward<A>(a)),
       i,
-      std::forward<B>(args)...
+      std::forward<B>(b)...
     )
   )
 )
@@ -747,7 +747,7 @@ inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
   return execget<T, I>(
     make_unique(std::forward<D>(db), std::forward<A>(a)),
     i,
-    std::forward<B>(args)...
+    std::forward<B>(b)...
   );
 }
 
