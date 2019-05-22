@@ -1003,7 +1003,7 @@ inline auto column_bytes(A&& ...args) noexcept(
 }
 
 //for/////////////////////////////////////////////////////////////////////////
-namespace
+namespace detail
 {
 
 template <typename>
@@ -1311,18 +1311,18 @@ inline auto foreach_row(S&& s, F&& f, int const i,
 template <typename F, typename S>
 inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
     noexcept(
-      foreach_row(std::forward<S>(s),
+      detail::foreach_row(std::forward<S>(s),
         std::forward<F>(f),
         i,
-        extract_signature(f)
+        detail::extract_signature(f)
       )
     )
   )
 {
-  return foreach_row(std::forward<S>(s),
+  return detail::foreach_row(std::forward<S>(s),
     std::forward<F>(f),
     i,
-    extract_signature(f)
+    detail::extract_signature(f)
   );
 }
 
