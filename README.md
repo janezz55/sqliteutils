@@ -1,5 +1,6 @@
 ## Description
 A lightweight C++17 wrapper library for sqlite3. The goals of the library are:
+- exception safety (no exceptions thrown),
 - code verbosity,
 - resource management,
 - transparency,
