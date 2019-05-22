@@ -731,8 +731,7 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
 template <typename T, int I = 0, typename D, typename A, typename ...B,
   typename = std::enable_if_t<
     std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
-    std::is_same<remove_cvr_t<D>, shared_db_t>{} ||
-    std::is_same<remove_cvr_t<D>, unique_db_t>{}
+    is_db_t<D>{}
   >
 >
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...args) noexcept(
