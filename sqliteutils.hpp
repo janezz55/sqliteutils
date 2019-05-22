@@ -434,30 +434,30 @@ inline auto exec(D const& db, A&& ...args) noexcept(
   return exec(db.get(), std::forward<A>(args)...);
 }
 
-//exec_multi//////////////////////////////////////////////////////////////////
-inline auto exec_multi(sqlite3* const db, char const* const a) noexcept
+//execmulti///////////////////////////////////////////////////////////////////
+inline auto execmulti(sqlite3* const db, char const* const a) noexcept
 {
   return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
 }
 
 template <std::size_t N>
-inline auto exec_multi(sqlite3* const db, char const (&a)[N]) noexcept
+inline auto execmulti(sqlite3* const db, char const (&a)[N]) noexcept
 {
-  return exec_multi(db, a);
+  return execmulti(db, a);
 }
 
-inline auto exec_multi(sqlite3* const db, std::string_view const& a) noexcept
+inline auto execmulti(sqlite3* const db, std::string_view const& a) noexcept
 {
-  return exec_multi(db, a.data());
+  return execmulti(db, a.data());
 }
 
 template <typename D, typename ...A,
   typename = std::enable_if_t<is_db_t<D>{}>
 >
-inline auto exec_multi(D const& db, A&& ...args) noexcept(
-  noexcept(exec_multi(db.get(), std::forward<A>(args)...)))
+inline auto execmulti(D const& db, A&& ...args) noexcept(
+  noexcept(execmulti(db.get(), std::forward<A>(args)...)))
 {
-  return exec_multi(db.get(), std::forward<A>(args)...);
+  return execmulti(db.get(), std::forward<A>(args)...);
 }
 
 namespace detail
@@ -484,15 +484,27 @@ struct exec_maker : protected maker
   }
 };
 
-struct exec_multi_maker : protected maker
+struct execget_maker : protected maker
+{
+  using maker::maker;
+
+  template <typename A, typename ...B>
+  auto operator()(A&& a, int const i, B&& ...b) && noexcept(
+    noexcept(execget(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
+  {
+    return execget(std::forward<A>(a), s_, i, std::forward<B>(b)...);
+  }
+};
+
+struct execmulti_maker : protected maker
 {
   using maker::maker;
 
   template <typename A>
   auto operator()(A&& a) && noexcept(
-    noexcept(exec_multi(std::forward<A>(a), s_)))
+    noexcept(execmulti(std::forward<A>(a), s_)))
   {
-    return exec_multi(std::forward<A>(a), s_);
+    return execmulti(std::forward<A>(a), s_);
   }
 };
 
@@ -534,7 +546,13 @@ inline auto operator "" _exec(char const* const s,
 inline auto operator "" _execmulti(char const* const s,
   std::size_t const N) noexcept
 {
-  return detail::exec_multi_maker(s, N);
+  return detail::execmulti_maker(s, N);
+}
+
+inline auto operator "" _execget(char const* const s,
+  std::size_t const N) noexcept
+{
+  return detail::execget_maker(s, N);
 }
 
 inline auto operator "" _shared(char const* const s,
