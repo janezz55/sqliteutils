@@ -754,14 +754,9 @@ inline auto execget(D&& db, A&& a, int const i = 0, B&& ...b) noexcept(
 namespace detail
 {
 
-class maker
+struct maker
 {
   std::string_view const s_;
-
-public:
-  explicit maker(char const* const s, std::size_t const N) noexcept : s_(s, N)
-  {
-  }
 
   template <typename A, typename ...B>
   auto exec(A&& a, B&& ...b) && noexcept(
@@ -772,9 +767,11 @@ public:
 
   template <typename T, int I = 0, typename A, typename ...B>
   auto execget(A&& a, int const i = 0, B&& ...b) && noexcept(
-    noexcept(squ::execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
+    noexcept(squ::execget<T, I>(std::forward<A>(a), s_, i,
+      std::forward<B>(b)...)))
   {
-    return squ::execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...);
+    return squ::execget<T, I>(std::forward<A>(a), s_, i,
+      std::forward<B>(b)...);
   }
 
   template <typename A>
@@ -807,7 +804,7 @@ namespace literals
 inline auto operator "" _squ(char const* const s,
   std::size_t const N) noexcept
 {
-  return detail::maker(s, N);
+  return detail::maker{{s, N}};
 }
 
 }
