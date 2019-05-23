@@ -297,9 +297,8 @@ inline auto rset(S const& s, A&& ...args) noexcept(
 }
 
 //make_unique/////////////////////////////////////////////////////////////////
-template <unsigned fl = 0>
-inline auto make_unique(sqlite3* const db,
-  std::string_view const& sv) noexcept
+inline auto make_unique(sqlite3* const db, std::string_view const& sv,
+  unsigned const fl = 0) noexcept
 {
   sqlite3_stmt* s;
 
@@ -310,27 +309,27 @@ inline auto make_unique(sqlite3* const db,
   return SQLITE_OK == result ? unique_stmt_t(s) : unique_stmt_t();
 }
 
-template <unsigned fl = 0, std::size_t N>
-inline auto make_unique(sqlite3* const db, char const (&a)[N]) noexcept
+template <std::size_t N>
+inline auto make_unique(sqlite3* const db, char const (&a)[N],
+  unsigned const fl = 0) noexcept
 {
-  return make_unique<fl>(db, std::string_view(a, N));
+  return make_unique(db, std::string_view(a, N), fl);
 }
 
 // forwarders
-template <unsigned fl = 0, typename D, typename ...A,
+template <typename D, typename ...A,
   typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto make_unique(D const& db, A&& ...args) noexcept(
-  noexcept(make_unique<fl>(db.get(), std::forward<A>(args)...))
+  noexcept(make_unique(db.get(), std::forward<A>(args)...))
 )
 {
-  return make_unique<fl>(db.get(), std::forward<A>(args)...);
+  return make_unique(db.get(), std::forward<A>(args)...);
 }
 
 //make_shared/////////////////////////////////////////////////////////////////
-template <unsigned fl = 0>
-inline auto make_shared(sqlite3* const db,
-  std::string_view const& sv) noexcept
+inline auto make_shared(sqlite3* const db, std::string_view const& sv,
+  unsigned const fl = 0) noexcept
 {
   sqlite3_stmt* s;
 
@@ -343,10 +342,11 @@ inline auto make_shared(sqlite3* const db,
     shared_stmt_t();
 }
 
-template <unsigned fl = 0, std::size_t N>
-inline auto make_shared(sqlite3* const db, char const (&a)[N]) noexcept
+template <std::size_t N>
+inline auto make_shared(sqlite3* const db, char const (&a)[N],
+  unsigned const fl = 0) noexcept
 {
-  return make_shared<fl>(db, std::string_view(a, N));
+  return make_shared(db, std::string_view(a, N), fl);
 }
 
 // forwarders
@@ -785,17 +785,17 @@ public:
   }
 
   template <typename A>
-  auto shared(A&& a) && noexcept(
-    noexcept(squ::make_shared(std::forward<A>(a), s_)))
+  auto shared(A&& a, unsigned fl = 0) && noexcept(
+    noexcept(squ::make_shared(std::forward<A>(a), s_, fl)))
   {
-    return squ::make_shared(std::forward<A>(a), s_);
+    return squ::make_shared(std::forward<A>(a), s_, fl);
   }
 
   template <typename A>
-  auto unique(A&& a) && noexcept(
-    noexcept(squ::make_unique(std::forward<A>(a), s_)))
+  auto unique(A&& a, unsigned fl = 0) && noexcept(
+    noexcept(squ::make_unique(std::forward<A>(a), s_, fl)))
   {
-    return squ::make_unique(std::forward<A>(a), s_);
+    return squ::make_unique(std::forward<A>(a), s_, fl);
   }
 };
 
