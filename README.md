@@ -23,7 +23,7 @@ int main(int, char*[])
 {
   auto const db(squ::open_unique("example.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
-  std::cout << "SELECT 1+2"_squ.execget<int>(db).value() << std::endl;
+  std::cout << "SELECT 1./3"_squ.execget<double>(db).value() << std::endl;
 
   "DROP TABLE IF EXISTS COMPANY;"
   "CREATE TABLE COMPANY("
