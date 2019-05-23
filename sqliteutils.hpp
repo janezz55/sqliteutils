@@ -779,11 +779,11 @@ struct execget_maker : protected maker
 {
   using maker::maker;
 
-  template <typename T, typename A, typename ...B>
+  template <typename T, int I = 0, typename A, typename ...B>
   auto operator()(A&& a, int const i = 0, B&& ...b) && noexcept(
-    noexcept(execget<T>(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
+    noexcept(execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
   {
-    return execget<T>(std::forward<A>(a), s_, i, std::forward<B>(b)...);
+    return execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...);
   }
 };
 
