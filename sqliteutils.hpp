@@ -1326,12 +1326,10 @@ inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
   );
 }
 
-namespace detail
-{
-
-template <typename F, typename ...A>
-inline auto foreach_stmt(sqlite3* const db, F const f,
-  signature<void(A...)>) noexcept(noexcept(f(std::declval<sqlite3_stmt*>())))
+template <typename F>
+inline auto foreach_stmt(sqlite3* const db, F const f) noexcept(
+  noexcept(f(nullptr))) ->
+  std::enable_if_t<std::is_same<void, decltype(f(nullptr))>{}>
 {
   for (auto s(sqlite3_next_stmt(db, {})); s; s = sqlite3_next_stmt(db, s))
   {
@@ -1339,25 +1337,14 @@ inline auto foreach_stmt(sqlite3* const db, F const f,
   }
 }
 
-template <typename F, typename ...A>
-inline auto foreach_stmt(sqlite3* const db, F const f,
-  signature<bool(A...)>) noexcept(noexcept(f(std::declval<sqlite3_stmt*>())))
+template <typename F>
+inline auto foreach_stmt(sqlite3* const db, F const f) noexcept(
+  noexcept(f(nullptr))) ->
+  std::enable_if_t<std::is_same<bool, decltype(f(nullptr))>{}>
 {
   for (auto s(sqlite3_next_stmt(db, {}));
     s && !f(s);
     s = sqlite3_next_stmt(db, s));
-}
-
-}
-
-template <typename F>
-inline void foreach_stmt(sqlite3* const db, F&& f) noexcept(
-  noexcept(f(std::declval<sqlite3_stmt*>())))
-{
-  return detail::foreach_stmt(db,
-    std::forward<F>(f),
-    detail::extract_signature(f)
-  );
 }
 
 template <typename D, typename ...A,
@@ -1510,7 +1497,7 @@ inline auto push_back_n(S&& s, C& c, T&& n, int const i = 0)
 inline void reset_all(sqlite3* const db) noexcept
 {
   squ::foreach_stmt(db,
-    [](sqlite3_stmt* const s) noexcept
+    [](auto const s) noexcept
     {
       squ::reset(s);
     }
@@ -1529,7 +1516,7 @@ inline auto reset_all(D const& db) noexcept(noexcept(reset_all(db.get())))
 inline void reset_all_busy(sqlite3* const db) noexcept
 {
   squ::foreach_stmt(db,
-    [](sqlite3_stmt* const s) noexcept
+    [](auto const s) noexcept
     {
       if (sqlite3_stmt_busy(s))
       {
