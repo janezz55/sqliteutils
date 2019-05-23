@@ -37,10 +37,10 @@ int main(int, char*[])
   "INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)"
   "VALUES(3, 'Teddy', 23, 'Norway', 20000.00 );"
   "INSERT INTO COMPANY (ID,NAME,AGE,ADDRESS,SALARY)"
-  "VALUES(4, 'Mark', 25, 'Rich-Mond ', 65000.00)"_execmulti(db);
+  "VALUES(4, 'Mark', 25, 'Rich-Mond ', 65000.00)"_squ.execmulti(db);
 
   auto const stmt(
-    "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"_unique(db)
+    "SELECT NAME,AGE,ADDRESS,SALARY FROM COMPANY"_squ.unique(db)
   );
 
   squ::foreach_row(stmt,
