@@ -1329,7 +1329,7 @@ inline auto foreach_row(S&& s, F&& f, int const i = 0) noexcept(
 template <typename F>
 inline auto foreach_stmt(sqlite3* const db, F const f) noexcept(
   noexcept(f(nullptr))) ->
-  std::enable_if_t<std::is_same<void, decltype(f(nullptr))>{}>
+  std::enable_if_t<std::is_invocable_r_v<void, F, sqlite3_stmt*>>
 {
   for (auto s(sqlite3_next_stmt(db, {})); s; s = sqlite3_next_stmt(db, s))
   {
@@ -1340,7 +1340,7 @@ inline auto foreach_stmt(sqlite3* const db, F const f) noexcept(
 template <typename F>
 inline auto foreach_stmt(sqlite3* const db, F const f) noexcept(
   noexcept(f(nullptr))) ->
-  std::enable_if_t<std::is_same<bool, decltype(f(nullptr))>{}>
+  std::enable_if_t<std::is_invocable_r_v<bool, F, sqlite3_stmt*>>
 {
   for (auto s(sqlite3_next_stmt(db, {}));
     s && !f(s);
