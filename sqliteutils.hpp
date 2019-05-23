@@ -754,72 +754,48 @@ inline auto execget(D&& db, A&& a, int const i = 0, B&& ...b) noexcept(
 namespace detail
 {
 
-struct maker
+class maker
 {
   std::string_view const s_;
 
+public:
   explicit maker(char const* const s, std::size_t const N) noexcept : s_(s, N)
   {
   }
-};
-
-struct exec_maker : protected maker
-{
-  using maker::maker;
 
   template <typename A, typename ...B>
-  auto operator()(A&& a, B&& ...b) && noexcept(
-    noexcept(exec(std::forward<A>(a), s_, std::forward<B>(b)...)))
+  auto exec(A&& a, B&& ...b) && noexcept(
+    noexcept(squ::exec(std::forward<A>(a), s_, std::forward<B>(b)...)))
   {
-    return exec(std::forward<A>(a), s_, std::forward<B>(b)...);
+    return squ::exec(std::forward<A>(a), s_, std::forward<B>(b)...);
   }
-};
-
-struct execget_maker : protected maker
-{
-  using maker::maker;
 
   template <typename T, int I = 0, typename A, typename ...B>
-  auto operator()(A&& a, int const i = 0, B&& ...b) && noexcept(
-    noexcept(execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
+  auto execget(A&& a, int const i = 0, B&& ...b) && noexcept(
+    noexcept(squ::execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...)))
   {
-    return execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...);
+    return squ::execget<T, I>(std::forward<A>(a), s_, i, std::forward<B>(b)...);
   }
-};
-
-struct execmulti_maker : protected maker
-{
-  using maker::maker;
 
   template <typename A>
-  auto operator()(A&& a) && noexcept(
-    noexcept(execmulti(std::forward<A>(a), s_)))
+  auto execmulti(A&& a) && noexcept(
+    noexcept(squ::execmulti(std::forward<A>(a), s_)))
   {
-    return execmulti(std::forward<A>(a), s_);
+    return squ::execmulti(std::forward<A>(a), s_);
   }
-};
-
-struct shared_maker : protected maker
-{
-  using maker::maker;
 
   template <typename A>
-  auto operator()(A&& a) && noexcept(
-    noexcept(make_shared(std::forward<A>(a), s_)))
+  auto shared(A&& a) && noexcept(
+    noexcept(squ::make_shared(std::forward<A>(a), s_)))
   {
-    return make_shared(std::forward<A>(a), s_);
+    return squ::make_shared(std::forward<A>(a), s_);
   }
-};
-
-struct unique_maker : protected maker
-{
-  using maker::maker;
 
   template <typename A>
-  auto operator()(A&& a) && noexcept(
-    noexcept(make_unique(std::forward<A>(a), s_)))
+  auto unique(A&& a) && noexcept(
+    noexcept(squ::make_unique(std::forward<A>(a), s_)))
   {
-    return make_unique(std::forward<A>(a), s_);
+    return squ::make_unique(std::forward<A>(a), s_);
   }
 };
 
@@ -828,34 +804,10 @@ struct unique_maker : protected maker
 namespace literals
 {
 
-inline auto operator "" _exec(char const* const s,
+inline auto operator "" _squ(char const* const s,
   std::size_t const N) noexcept
 {
-  return detail::exec_maker(s, N);
-}
-
-inline auto operator "" _execget(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::execget_maker(s, N);
-}
-
-inline auto operator "" _execmulti(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::execmulti_maker(s, N);
-}
-
-inline auto operator "" _shared(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::shared_maker(s, N);
-}
-
-inline auto operator "" _unique(char const* const s,
-  std::size_t const N) noexcept
-{
-  return detail::unique_maker(s, N);
+  return detail::maker(s, N);
 }
 
 }
