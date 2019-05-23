@@ -1301,7 +1301,7 @@ inline auto foreach_row(S&& s, F&& f, int const i,
   return foreach_row(std::forward<S>(s),
     std::forward<F>(f),
     i,
-    extract_signature(f),
+    signature<R(A...)>{},
     std::index_sequence_for<A...>()
   );
 }
