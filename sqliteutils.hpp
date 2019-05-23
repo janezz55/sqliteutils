@@ -1522,8 +1522,6 @@ inline void reset_all_busy(sqlite3* const db) noexcept
       {
         squ::reset(s);
       }
-
-      return false;
     }
   );
 }
