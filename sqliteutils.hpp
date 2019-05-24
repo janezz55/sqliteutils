@@ -722,7 +722,7 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
 template <typename T, int I = 0, typename D, typename A, typename ...B,
   typename = std::enable_if_t<
     std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
-    is_db_t<D>{}
+    is_db_v<D>
   >
 >
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...b) noexcept(
@@ -806,9 +806,7 @@ inline auto changes(sqlite3* const db) noexcept
   return sqlite3_changes(db);
 }
 
-template <typename D,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
+template <typename D, typename = std::enable_if_t<is_db_v<D>>>
 inline auto changes(D const& db) noexcept(noexcept(changes(db.get())))
 {
   return changes(db.get());
@@ -820,7 +818,7 @@ inline auto clear_bindings(sqlite3_stmt* const s) noexcept
   return sqlite3_clear_bindings(s);
 }
 
-template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
 inline auto clear_bindings(S const& s) noexcept(
   noexcept(clear_bindings(s.get()))
 )
@@ -848,7 +846,7 @@ inline auto column_name(sqlite3_stmt* const s, int const i = 0) noexcept
   return sqlite3_column_name(s, i);
 }
 
-template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
 inline auto column_name(S const& s, int const i = 0) noexcept(
   noexcept(column_name(s.get(), i))
 )
@@ -1286,7 +1284,7 @@ foreach_stmt(sqlite3* const db, F const f) noexcept(noexcept(f(nullptr)))
 }
 
 template <typename D, typename ...A,
-  typename = std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_v<D>>
 >
 inline auto foreach_stmt(D const& db, A&& ...args) noexcept(
   noexcept(foreach_stmt(db.get(), std::forward<A>(args)...))
@@ -1442,7 +1440,7 @@ inline void reset_all(sqlite3* const db) noexcept
   );
 }
 
-template <typename D, typename = std::enable_if_t<is_db_t<D>{}>>
+template <typename D, typename = std::enable_if_t<is_db_v<D>>>
 inline auto reset_all(D const& db) noexcept(noexcept(reset_all(db.get())))
 {
   return reset_all(db.get());
@@ -1462,7 +1460,7 @@ inline void reset_all_busy(sqlite3* const db) noexcept
   );
 }
 
-template <typename D, typename = std::enable_if_t<is_db_t<D>{}>>
+template <typename D, typename = std::enable_if_t<is_db_v<D>>>
 inline auto reset_all_busy(D&& db) noexcept(
   noexcept(reset_all_busy(db.get()))
 )
