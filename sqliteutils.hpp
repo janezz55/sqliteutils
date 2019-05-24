@@ -393,7 +393,7 @@ inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 
 // forwarders
 template <int I = 0, typename S, typename ...A>
-inline std::enable_if_t<is_stmt_t<S>{}, decltype(exec<I>(nullptr))>
+inline std::enable_if_t<is_stmt_v<S>, decltype(exec<I>(nullptr))>
 exec(S const& s, A&& ...args) noexcept(
   noexcept(exec<I>(s.get(), std::forward<A>(args)...)))
 {
@@ -401,7 +401,7 @@ exec(S const& s, A&& ...args) noexcept(
 }
 
 template <int I = 0, typename S, typename ...A,
-  typename = std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto rexec(S const& s, A&& ...args) noexcept(
   noexcept(rexec(s.get(), std::forward<A>(args)...)))
@@ -424,7 +424,7 @@ inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
 }
 
 template <int I = 0, typename D, typename ...A,
-  typename = std::enable_if_t<is_db_t<D>{}>
+  typename = std::enable_if_t<is_db_v<D>>
 >
 inline auto exec(D const& db, A&& ...args) noexcept(
   noexcept(exec<I>(db.get(), std::forward<A>(args)...))
@@ -444,9 +444,7 @@ inline auto execmulti(sqlite3* const db, std::string_view const& a) noexcept
   return execmulti(db, a.data());
 }
 
-template <typename D, typename ...A,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
+template <typename D, typename ...A, typename = std::enable_if_t<is_db_v<D>>>
 inline auto execmulti(D const& db, A&& ...args) noexcept(
   noexcept(execmulti(db.get(), std::forward<A>(args)...)))
 {
