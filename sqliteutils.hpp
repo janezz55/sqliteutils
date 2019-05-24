@@ -392,11 +392,10 @@ inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 }
 
 // forwarders
-template <int I = 0, typename S, typename ...A,
-  typename = std::enable_if_t<is_stmt_t<S>{}>
->
-inline auto exec(S const& s, A&& ...args) noexcept(
-  noexcept(exec(s.get(), std::forward<A>(args)...)))
+template <int I = 0, typename S, typename ...A>
+inline std::enable_if_t<is_stmt_t<S>{}, decltype(exec<I>(nullptr))>
+exec(S const& s, A&& ...args) noexcept(
+  noexcept(exec<I>(s.get(), std::forward<A>(args)...)))
 {
   return exec<I>(s.get(), std::forward<A>(args)...);
 }
@@ -424,14 +423,14 @@ inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   );
 }
 
-template <typename D, typename ...A,
+template <int I = 0, typename D, typename ...A,
   typename = std::enable_if_t<is_db_t<D>{}>
 >
 inline auto exec(D const& db, A&& ...args) noexcept(
-  noexcept(exec(db.get(), std::forward<A>(args)...))
+  noexcept(exec<I>(db.get(), std::forward<A>(args)...))
 )
 {
-  return exec(db.get(), std::forward<A>(args)...);
+  return exec<I>(db.get(), std::forward<A>(args)...);
 }
 
 //execmulti///////////////////////////////////////////////////////////////////
