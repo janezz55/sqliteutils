@@ -679,7 +679,7 @@ auto get(sqlite3_stmt* const s, int const i = 0) noexcept(
 }
 
 template <typename ...A, typename S,
-  typename = typename std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto get(S const& s, int const i = 0) noexcept(
   noexcept(get<A...>(s.get(), i))
@@ -834,7 +834,7 @@ inline auto column_count(sqlite3_stmt* const s) noexcept
   return sqlite3_column_count(s);
 }
 
-template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
 inline auto column_count(S const& s) noexcept(
   noexcept(column_count(s.get()))
 )
@@ -862,7 +862,7 @@ inline auto column_name16(sqlite3_stmt* const s, int const i = 0) noexcept
   return static_cast<char16_t const*>(sqlite3_column_name16(s, i));
 }
 
-template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
 inline auto column_name16(S const& s, int const i = 0) noexcept(
   noexcept(column_name16(s.get(), i))
 )
@@ -914,7 +914,7 @@ inline auto reset(sqlite3_stmt* const s) noexcept
   return sqlite3_reset(s);
 }
 
-template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}>>
+template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
 inline auto reset(S const& s) noexcept(noexcept(reset(s.get())))
 {
   return reset(s.get());
@@ -926,7 +926,7 @@ inline auto size(sqlite3_stmt* const s, int const i = 0) noexcept
   return sqlite3_column_bytes(s, i);
 }
 
-template <typename S, typename = std::enable_if_t<is_stmt_t<S>{}> >
+template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
 inline auto size(S const& s, int const i = 0) noexcept(
   noexcept(size(s.get(), i))
 )
