@@ -758,11 +758,11 @@ struct maker
 {
   std::string_view const s_;
 
-  template <typename A, typename ...B>
+  template <int I = 0, typename A, typename ...B>
   auto exec(A&& a, B&& ...b) && noexcept(
-    noexcept(squ::exec(std::forward<A>(a), s_, std::forward<B>(b)...)))
+    noexcept(squ::exec<I>(std::forward<A>(a), s_, std::forward<B>(b)...)))
   {
-    return squ::exec(std::forward<A>(a), s_, std::forward<B>(b)...);
+    return squ::exec<I>(std::forward<A>(a), s_, std::forward<B>(b)...);
   }
 
   template <typename T, int I = 0, typename A, typename ...B>
