@@ -439,12 +439,6 @@ inline auto execmulti(sqlite3* const db, char const* const a) noexcept
   return sqlite3_exec(db, a, nullptr, nullptr, nullptr);
 }
 
-template <std::size_t N>
-inline auto execmulti(sqlite3* const db, char const (&a)[N]) noexcept
-{
-  return execmulti(db, a);
-}
-
 inline auto execmulti(sqlite3* const db, std::string_view const& a) noexcept
 {
   return execmulti(db, a.data());
