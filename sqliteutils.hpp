@@ -214,6 +214,9 @@ using is_db_t =
     std::is_same<remove_cvr_t<T>, unique_db_t>{}
   >;
 
+template <typename T>
+inline constexpr bool is_db_v = is_db_t<T>::value;
+
 using shared_stmt_t = std::shared_ptr<sqlite3_stmt>;
 
 using unique_stmt_t = std::unique_ptr<sqlite3_stmt,
@@ -228,14 +231,16 @@ using is_stmt_t =
     std::is_same<remove_cvr_t<T>, unique_stmt_t>{}
   >;
 
+template <typename T>
+inline constexpr bool is_stmt_v = is_stmt_t<T>::value;
+
 //errmsg//////////////////////////////////////////////////////////////////////
 inline auto errmsg(sqlite3* const db) noexcept
 {
   return sqlite3_errmsg(db);
 }
 
-template <typename D,
-  typename = std::enable_if_t<is_db_t<D>{}>
+template <typename D, typename = std::enable_if_t<is_db_v<D>>
 >
 inline auto errmsg(D const& db) noexcept
 {
@@ -247,9 +252,7 @@ inline auto errmsg16(sqlite3* const db) noexcept
   return sqlite3_errmsg16(db);
 }
 
-template <typename D,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
+template <typename D, typename = std::enable_if_t<is_db_v<D>>>
 inline auto errmsg16(D const& db) noexcept
 {
   return sqlite3_errmsg16(db.get());
@@ -266,7 +269,7 @@ inline auto set(sqlite3_stmt* const s, A&& ...args) noexcept
 }
 
 template <int I = 0, typename S, typename ...A,
-  typename = std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto set(S const& s, A&& ...args) noexcept(
   noexcept(set(s.get(), std::forward<A>(args)...))
@@ -277,7 +280,8 @@ inline auto set(S const& s, A&& ...args) noexcept(
 
 //rset////////////////////////////////////////////////////////////////////////
 template <int I = 0, typename ...A>
-inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept
+inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept(
+  noexcept(set(s, std::forward<A>(args)...)))
 {
   auto const r(sqlite3_reset(s));
 
@@ -287,7 +291,7 @@ inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept
 }
 
 template <int I = 0, typename S, typename ...A,
-  typename = std::enable_if_t<is_stmt_t<S>{}>
+  typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto rset(S const& s, A&& ...args) noexcept(
   noexcept(rset(s.get(), std::forward<A>(args)...))
@@ -317,9 +321,7 @@ inline auto make_unique(sqlite3* const db, char const (&a)[N],
 }
 
 // forwarders
-template <typename D, typename ...A,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
+template <typename D, typename ...A, typename = std::enable_if_t<is_db_v<D>>>
 inline auto make_unique(D const& db, A&& ...args) noexcept(
   noexcept(make_unique(db.get(), std::forward<A>(args)...))
 )
@@ -1444,9 +1446,7 @@ inline void reset_all(sqlite3* const db) noexcept
   );
 }
 
-template <typename D,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
+template <typename D, typename = std::enable_if_t<is_db_t<D>{}>>
 inline auto reset_all(D const& db) noexcept(noexcept(reset_all(db.get())))
 {
   return reset_all(db.get());
@@ -1466,10 +1466,8 @@ inline void reset_all_busy(sqlite3* const db) noexcept
   );
 }
 
-template <typename D,
-  typename = std::enable_if_t<is_db_t<D>{}>
->
-inline auto reset_all_busy(D const& db) noexcept(
+template <typename D, typename = std::enable_if_t<is_db_t<D>{}>>
+inline auto reset_all_busy(D&& db) noexcept(
   noexcept(reset_all_busy(db.get()))
 )
 {
