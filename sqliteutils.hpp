@@ -352,7 +352,7 @@ inline auto make_shared(sqlite3* const db, char const (&a)[N],
 }
 
 // forwarders
-template <typename D, typename ...A, typename = std::enable_if_v<is_db_t<D>>>
+template <typename D, typename ...A, typename = std::enable_if_t<is_db_v<D>>>
 inline auto make_shared(D const& db, A&& ...args) noexcept(
   noexcept(make_shared(db.get(), std::forward<A>(args)...))
 )
