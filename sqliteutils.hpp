@@ -1291,7 +1291,7 @@ namespace detail
 template <typename FP, FP fp, typename C, typename S>
 inline auto container_push(S&& s, C& c, int const i)
 {
-  decltype(exec(std::forward<S>(s))) r;
+  decltype(exec(std::forward<S>(s))) r(SQLITE_DONE);
 
   for (;;)
   {
