@@ -828,9 +828,7 @@ inline auto column_count(sqlite3_stmt* const s) noexcept
 }
 
 template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
-inline auto column_count(S const& s) noexcept(
-  noexcept(column_count(s.get()))
-)
+inline auto column_count(S const& s) noexcept(noexcept(column_count(s.get())))
 {
   return column_count(s.get());
 }
