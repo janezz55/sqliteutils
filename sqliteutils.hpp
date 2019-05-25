@@ -1329,7 +1329,7 @@ inline auto container_push(S&& s, C& c, T n, int const i)
 
         continue;
 
-      case SQLITE_DONE:;
+      case SQLITE_DONE:
         break;
 
       default:
