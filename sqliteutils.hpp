@@ -1278,9 +1278,7 @@ foreach_stmt(sqlite3* const db, F const f) noexcept(noexcept(f(nullptr)))
     s = sqlite3_next_stmt(db, s));
 }
 
-template <typename D, typename ...A,
-  typename = std::enable_if_t<is_db_v<D>>
->
+template <typename D, typename ...A, typename = std::enable_if_t<is_db_v<D>>>
 inline auto foreach_stmt(D const& db, A&& ...args) noexcept(
   noexcept(foreach_stmt(db.get(), std::forward<A>(args)...))
 )
