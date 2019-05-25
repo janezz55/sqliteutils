@@ -254,16 +254,16 @@ inline auto errmsg16(D const& db) noexcept
 }
 
 //set/////////////////////////////////////////////////////////////////////////
-template <int I = 0, typename ...A>
+template <int I = 1, typename ...A>
 inline auto set(sqlite3_stmt* const s, A&& ...args) noexcept
 {
-  return detail::set<I + 1>(s,
+  return detail::set<I>(s,
     std::index_sequence_for<A...>(),
     std::forward<A>(args)...
   );
 }
 
-template <int I = 0, typename S, typename ...A,
+template <int I = 1, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto set(S const& s, A&& ...args) noexcept(
@@ -274,7 +274,7 @@ inline auto set(S const& s, A&& ...args) noexcept(
 }
 
 //rset////////////////////////////////////////////////////////////////////////
-template <int I = 0, typename ...A>
+template <int I = 1, typename ...A>
 inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept(
   noexcept(set(s, std::forward<A>(args)...)))
 {
@@ -285,7 +285,7 @@ inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept(
     r;
 }
 
-template <int I = 0, typename S, typename ...A,
+template <int I = 1, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto rset(S const& s, A&& ...args) noexcept(
@@ -356,13 +356,13 @@ inline auto make_shared(D const& db, A&& ...args) noexcept(
 }
 
 //exec////////////////////////////////////////////////////////////////////////
-template <int I = 0>
+template <int I = 1>
 inline auto exec(sqlite3_stmt* const s) noexcept
 {
   return sqlite3_step(s);
 }
 
-template <int I = 0, typename ...A>
+template <int I = 1, typename ...A>
 inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   auto const r(set<I>(s, std::forward<A>(args)...));
@@ -370,7 +370,7 @@ inline auto exec(sqlite3_stmt* const s, A&& ...args) noexcept
   return SQLITE_OK == r ? sqlite3_step(s) : r;
 }
 
-template <int I = 0>
+template <int I = 1>
 inline auto rexec(sqlite3_stmt* const s) noexcept
 {
   auto const r(sqlite3_reset(s));
@@ -378,7 +378,7 @@ inline auto rexec(sqlite3_stmt* const s) noexcept
   return SQLITE_OK == r ? sqlite3_step(s) : r;
 }
 
-template <int I = 0, typename ...A>
+template <int I = 1, typename ...A>
 inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 {
   auto const r(sqlite3_reset(s));
@@ -387,7 +387,7 @@ inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 }
 
 // forwarders
-template <int I = 0, typename S, typename ...A>
+template <int I = 1, typename S, typename ...A>
 inline std::enable_if_t<is_stmt_v<S>, decltype(exec<I>(nullptr))>
 exec(S const& s, A&& ...args) noexcept(
   noexcept(exec<I>(s.get(), std::forward<A>(args)...)))
@@ -395,7 +395,7 @@ exec(S const& s, A&& ...args) noexcept(
   return exec<I>(s.get(), std::forward<A>(args)...);
 }
 
-template <int I = 0, typename S, typename ...A,
+template <int I = 1, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto rexec(S const& s, A&& ...args) noexcept(
@@ -404,28 +404,28 @@ inline auto rexec(S const& s, A&& ...args) noexcept(
   return rexec<I>(s.get(), std::forward<A>(args)...);
 }
 
-template <int I = 0, typename A, typename ...B>
+template <typename A, typename ...B>
 inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   noexcept(
-    exec<I>(
+    exec(
       make_unique(db, std::forward<A>(a)), std::forward<B>(args)...
     )
   )
 )
 {
-  return exec<I>(
+  return exec(
     make_unique(db, std::forward<A>(a)), std::forward<B>(args)...
   );
 }
 
-template <int I = 0, typename D, typename ...A,
+template <typename D, typename ...A,
   typename = std::enable_if_t<is_db_v<D>>
 >
 inline auto exec(D const& db, A&& ...args) noexcept(
-  noexcept(exec<I>(db.get(), std::forward<A>(args)...))
+  noexcept(exec(db.get(), std::forward<A>(args)...))
 )
 {
-  return exec<I>(db.get(), std::forward<A>(args)...);
+  return exec(db.get(), std::forward<A>(args)...);
 }
 
 //execmulti///////////////////////////////////////////////////////////////////
@@ -684,7 +684,7 @@ inline auto get(S const& s, int const i = 0) noexcept(
 }
 
 //execget/////////////////////////////////////////////////////////////////////
-template <typename T, int I = 0, typename S, typename ...A>
+template <typename T, int I = 1, typename S, typename ...A>
 inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
   noexcept(exec<I>(std::forward<S>(s), std::forward<A>(args)...),
     get<T>(s, i)
@@ -699,7 +699,7 @@ inline auto execget(S&& s, int const i = 0, A&& ...args) noexcept(
     std::optional<T>();
 }
 
-template <typename T, int I = 0, typename S, typename ...A>
+template <typename T, int I = 1, typename S, typename ...A>
 inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
   noexcept(rexec<I>(std::forward<S>(s), std::forward<A>(args)...),
     get<T>(s, i)
@@ -714,7 +714,7 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
     std::optional<T>();
 }
 
-template <typename T, int I = 0, typename D, typename A, typename ...B,
+template <typename T, typename D, typename A, typename ...B,
   typename = std::enable_if_t<
     std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
     is_db_v<D>
@@ -722,7 +722,7 @@ template <typename T, int I = 0, typename D, typename A, typename ...B,
 >
 inline auto execget(D&& db, A&& a, int const i = 0, B&& ...b) noexcept(
   noexcept(
-    execget<T, I>(
+    execget<T>(
       make_unique(std::forward<D>(db), std::forward<A>(a)),
       i,
       std::forward<B>(b)...
@@ -730,7 +730,7 @@ inline auto execget(D&& db, A&& a, int const i = 0, B&& ...b) noexcept(
   )
 )
 {
-  return execget<T, I>(
+  return execget<T>(
     make_unique(std::forward<D>(db), std::forward<A>(a)),
     i,
     std::forward<B>(b)...
@@ -744,19 +744,19 @@ struct maker
 {
   std::string_view const s_;
 
-  template <int I = 0, typename A, typename ...B>
+  template <typename A, typename ...B>
   auto exec(A&& a, B&& ...b) && noexcept(
-    noexcept(squ::exec<I>(std::forward<A>(a), s_, std::forward<B>(b)...)))
+    noexcept(squ::exec(std::forward<A>(a), s_, std::forward<B>(b)...)))
   {
-    return squ::exec<I>(std::forward<A>(a), s_, std::forward<B>(b)...);
+    return squ::exec(std::forward<A>(a), s_, std::forward<B>(b)...);
   }
 
-  template <typename T, int I = 0, typename A, typename ...B>
+  template <typename T, typename A, typename ...B>
   auto execget(A&& a, int const i = 0, B&& ...b) && noexcept(
-    noexcept(squ::execget<T, I>(std::forward<A>(a), s_, i,
+    noexcept(squ::execget<T>(std::forward<A>(a), s_, i,
       std::forward<B>(b)...)))
   {
-    return squ::execget<T, I>(std::forward<A>(a), s_, i,
+    return squ::execget<T>(std::forward<A>(a), s_, i,
       std::forward<B>(b)...);
   }
 
