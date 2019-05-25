@@ -399,7 +399,7 @@ template <int I = 0, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto rexec(S const& s, A&& ...args) noexcept(
-  noexcept(rexec(s.get(), std::forward<A>(args)...)))
+  noexcept(rexec<I>(s.get(), std::forward<A>(args)...)))
 {
   return rexec<I>(s.get(), std::forward<A>(args)...);
 }
