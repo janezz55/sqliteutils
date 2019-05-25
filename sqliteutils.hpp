@@ -185,16 +185,12 @@ auto set(sqlite3_stmt* const s, std::index_sequence<Is...> const,
 {
   int r(SQLITE_OK);
 
-  (
+  return (
     (
-      r = SQLITE_OK == r ?
-        (SQLITE_OK == set<I + Is>(s, args) ? SQLITE_OK : r) :
-        r
+      SQLITE_OK == r ? r = set<I + Is>(s, args) : r
     ),
     ...
   );
-
-  return r;
 }
 
 }
