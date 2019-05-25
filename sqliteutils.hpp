@@ -289,7 +289,7 @@ template <int I = 0, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto rset(S const& s, A&& ...args) noexcept(
-  noexcept(rset(s.get(), std::forward<A>(args)...))
+  noexcept(rset<I>(s.get(), std::forward<A>(args)...))
 )
 {
   return rset<I>(s.get(), std::forward<A>(args)...);
