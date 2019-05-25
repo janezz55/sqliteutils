@@ -236,8 +236,7 @@ inline auto errmsg(sqlite3* const db) noexcept
   return sqlite3_errmsg(db);
 }
 
-template <typename D, typename = std::enable_if_t<is_db_v<D>>
->
+template <typename D, typename = std::enable_if_t<is_db_v<D>>>
 inline auto errmsg(D const& db) noexcept
 {
   return sqlite3_errmsg(db.get());
