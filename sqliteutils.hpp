@@ -203,7 +203,7 @@ template <typename T>
 using remove_cvr_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
 template <typename T>
-using is_db_t = 
+using is_db_t =
   std::integral_constant<
     bool,
     std::is_same<remove_cvr_t<T>, shared_db_t>{} ||
@@ -220,7 +220,7 @@ using unique_stmt_t = std::unique_ptr<sqlite3_stmt,
 >;
 
 template <typename T>
-using is_stmt_t = 
+using is_stmt_t =
   std::integral_constant<
     bool,
     std::is_same<remove_cvr_t<T>, shared_stmt_t>{} ||
