@@ -521,7 +521,7 @@ inline std::enable_if_t<
   std::is_same<T, std::string_view>{},
   T
 >
-get(sqlite3_stmt* const s, int const i = 0)
+get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
   return {
     get<char const*>(s, i),
