@@ -215,7 +215,7 @@ using is_db_t =
   >;
 
 template <typename T>
-inline constexpr bool is_db_v = is_db_t<T>::value;
+inline constexpr bool is_db_v{is_db_t<T>{}};
 
 using shared_stmt_t = std::shared_ptr<sqlite3_stmt>;
 
@@ -232,7 +232,7 @@ using is_stmt_t =
   >;
 
 template <typename T>
-inline constexpr bool is_stmt_v = is_stmt_t<T>::value;
+inline constexpr bool is_stmt_v{is_stmt_t<T>{}};
 
 //errmsg//////////////////////////////////////////////////////////////////////
 inline auto errmsg(sqlite3* const db) noexcept
