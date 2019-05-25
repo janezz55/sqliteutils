@@ -131,7 +131,7 @@ inline auto set(sqlite3_stmt* const s, charpair_t const& v) noexcept
 }
 
 template <int I, typename T,
-  typename = std::enable_if_t<std::is_same<T, char>{} >
+  typename = std::enable_if_t<std::is_same<T, char>{}>
 >
 inline auto set(sqlite3_stmt* const s, T const* const& v) noexcept
 {
