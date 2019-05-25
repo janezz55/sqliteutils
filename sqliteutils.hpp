@@ -272,7 +272,7 @@ template <int I = 0, typename S, typename ...A,
   typename = std::enable_if_t<is_stmt_v<S>>
 >
 inline auto set(S const& s, A&& ...args) noexcept(
-  noexcept(set(s.get(), std::forward<A>(args)...))
+  noexcept(set<I>(s.get(), std::forward<A>(args)...))
 )
 {
   return set<I>(s.get(), std::forward<A>(args)...);
@@ -286,7 +286,7 @@ inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept(
   auto const r(sqlite3_reset(s));
 
   return SQLITE_OK == r ?
-    set(s, std::forward<A>(args)...) :
+    set<I>(s, std::forward<A>(args)...) :
     r;
 }
 
