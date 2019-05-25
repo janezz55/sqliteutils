@@ -603,13 +603,13 @@ struct count_types<nullpair_t> :
 };
 
 template <typename A, typename B>
-struct count_types<std::pair<A, B> > :
+struct count_types<std::pair<A, B>> :
   std::integral_constant<std::size_t, count_types<A>{} + count_types<B>{}>
 {
 };
 
 template <typename A, typename ...B>
-struct count_types<std::tuple<A, B...> > :
+struct count_types<std::tuple<A, B...>> :
   std::integral_constant<std::size_t, count_types<A>{} + count_types<B...>{}>
 {
 };
