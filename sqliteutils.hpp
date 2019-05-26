@@ -1111,8 +1111,7 @@ constexpr inline auto extract_signature(F const&) noexcept ->
 
 template <typename ...A, typename F, typename S, std::size_t ...I>
 inline auto foreach_row(S&& s, F const f, int const i,
-  signature<bool(std::size_t, A...)> const,
-  std::index_sequence<I...>) noexcept(
+  signature<bool(std::size_t, A...)>, std::index_sequence<I...>) noexcept(
     noexcept(f(std::declval<remove_cvr_t<A>>()...))
   )
 {
@@ -1150,7 +1149,7 @@ inline auto foreach_row(S&& s, F const f, int const i,
 
 template <typename ...A, typename F, typename S, std::size_t ...I>
 inline auto foreach_row(S&& s, F const f, int const i,
-  signature<bool(A...)> const, std::index_sequence<I...> const) noexcept(
+  signature<bool(A...)>, std::index_sequence<I...>) noexcept(
     noexcept(f(std::declval<remove_cvr_t<A>>()...))
   )
 {
@@ -1188,7 +1187,7 @@ inline auto foreach_row(S&& s, F const f, int const i,
 
 template <typename ...A, typename F, typename S, std::size_t ...I>
 inline auto foreach_row(S&& s, F const f, int const i,
-  signature<void(A...)> const, std::index_sequence<I...> const) noexcept(
+  signature<void(A...)>, std::index_sequence<I...>) noexcept(
     noexcept(f(std::declval<remove_cvr_t<A>>()...))
   )
 {
