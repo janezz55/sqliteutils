@@ -1117,12 +1117,12 @@ inline auto foreach_row(S&& s, F const f, int const i,
 {
   decltype(exec(s)) r;
 
-  for (std::size_t i{};; ++i)
+  for (std::size_t j{};; ++j)
   {
     switch (r = exec(std::forward<S>(s)))
     {
       case SQLITE_ROW:
-        if (f(i, get<remove_cvr_t<A>>(
+        if (f(j, get<remove_cvr_t<A>>(
           std::forward<S>(s),
           i + detail::count_types_n<I, 0, A...>{})...)
         )
