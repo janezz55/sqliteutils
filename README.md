@@ -7,8 +7,7 @@ A lightweight C++17 wrapper library for sqlite3. The goals of the library are:
 - type safety,
 - performance.
 
-Please create issues to request new features.
-
+Please create issues to request new features. Try it [online](http://htmlpreview.github.io/?https://github.com/user1095108/examples/blob/master/testsqu.html).
 ## Example
 ```c++
 #include <iostream>
