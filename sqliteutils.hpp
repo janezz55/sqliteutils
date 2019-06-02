@@ -258,19 +258,25 @@ inline auto errmsg16(D const& db) noexcept
 //set/////////////////////////////////////////////////////////////////////////
 template <int I = 1, typename A>
 inline auto set(sqlite3_stmt* const s, A&& a) noexcept(
-    detail::set<I>(nullptr, std::declval<A>())
+  noexcept(
+    detail::set<I>(nullptr,
+      *static_cast<std::remove_reference_t<A>*>(nullptr)
+    )
   )
+)
 {
   return detail::set<I>(s, std::forward<A>(a));
 }
 
 template <int I = 1, typename ...A>
 inline auto set(sqlite3_stmt* const s, A&& ...a) noexcept(
+  noexcept(
     detail::set<I>(nullptr,
       std::make_index_sequence<sizeof...(A) - 1>(),
-      std::declval<A>()...
+      *static_cast<std::remove_reference_t<A>*>(nullptr)...
     )
   )
+)
 {
   return detail::set<I>(s,
     std::make_index_sequence<sizeof...(A) - 1>(),
