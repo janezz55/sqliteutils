@@ -264,9 +264,7 @@ inline auto errmsg16(D const& db) noexcept
 template <int I = 1, typename A>
 inline auto set(sqlite3_stmt* const s, A&& a) noexcept(
   noexcept(
-    detail::set<I>(nullptr,
-      *static_cast<std::remove_reference_t<A>*>(nullptr)
-    )
+    detail::set<I>(nullptr, std::declval<A>())
   )
 )
 {
@@ -278,7 +276,7 @@ inline auto set(sqlite3_stmt* const s, A&& ...a) noexcept(
   noexcept(
     detail::set<I>(nullptr,
       std::make_index_sequence<sizeof...(A) - 1>(),
-      *static_cast<std::remove_reference_t<A>*>(nullptr)...
+      std::declval<A>()...
     )
   )
 )
@@ -301,14 +299,12 @@ inline auto set(S const& s, A&& ...args) noexcept(
 
 //rset////////////////////////////////////////////////////////////////////////
 template <int I = 1, typename ...A>
-inline auto rset(sqlite3_stmt* const s, A&& ...args) noexcept(
-  noexcept(set(s, std::forward<A>(args)...)))
+inline auto rset(sqlite3_stmt* const s, A&& ...a) noexcept(
+  noexcept(set(s, std::forward<A>(a)...)))
 {
   auto const r(sqlite3_reset(s));
 
-  return SQLITE_OK == r ?
-    set<I>(s, std::forward<A>(args)...) :
-    r;
+  return SQLITE_OK == r ? set<I>(s, std::forward<A>(a)...) : r;
 }
 
 template <int I = 1, typename S, typename ...A,
@@ -327,11 +323,10 @@ inline auto make_unique(sqlite3* const db, std::string_view const& sv,
 {
   sqlite3_stmt* s;
 
-  auto const result(sqlite3_prepare_v3(
-    db, sv.data(), sv.size(), fl, &s, nullptr));
-  assert(SQLITE_OK == result);
+  auto const r(sqlite3_prepare_v3(db, sv.data(), sv.size(), fl, &s, nullptr));
+  assert(SQLITE_OK == r);
 
-  return SQLITE_OK == result ? unique_stmt_t(s) : unique_stmt_t();
+  return SQLITE_OK == r ? unique_stmt_t(s) : unique_stmt_t();
 }
 
 template <std::size_t N>
@@ -356,11 +351,10 @@ inline auto make_shared(sqlite3* const db, std::string_view const& sv,
 {
   sqlite3_stmt* s;
 
-  auto const result(sqlite3_prepare_v3(db, sv.data(), sv.size(),
-    fl, &s, nullptr));
-  assert(SQLITE_OK == result);
+  auto const r(sqlite3_prepare_v3(db, sv.data(), sv.size(), fl, &s, nullptr));
+  assert(SQLITE_OK == r);
 
-  return SQLITE_OK == result ?
+  return SQLITE_OK == r ?
     shared_stmt_t(s, detail::sqlite3_stmt_deleter()) :
     shared_stmt_t();
 }
