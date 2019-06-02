@@ -448,7 +448,7 @@ inline auto exec(D const& db, A&& ...args) noexcept(
 
 //execmulti///////////////////////////////////////////////////////////////////
 template <typename T,
-  typename = std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, char>>
+  typename = std::enable_if_t<std::is_same_v<std::remove_const_t<T>, char>>
 >
 inline auto execmulti(sqlite3* const db, T* const a) noexcept
 {
@@ -456,7 +456,7 @@ inline auto execmulti(sqlite3* const db, T* const a) noexcept
 }
 
 template <typename T, std::size_t N,
-  typename = std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, char>>
+  typename = std::enable_if_t<std::is_same_v<std::remove_const_t<T>, char>>
 >
 inline auto execmulti(sqlite3* const db, T(&a)[N]) noexcept
 {
