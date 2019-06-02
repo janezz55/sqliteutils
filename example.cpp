@@ -69,7 +69,7 @@ int main(int, char*[])
     "SELECT group_concat(substr(' .+*#',1+min(iter/7,4),1),'')"
     "FROM m2 GROUP BY cy"
     ")"
-    "SELECT group_concat(rtrim(t),x'0a') FROM a"_squ.unique(db);
+    "SELECT group_concat(rtrim(t),x'0a')FROM a"_squ.unique(db);
 
   squ::foreach_row(stmt,
     [](std::string_view const& s) noexcept
