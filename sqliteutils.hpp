@@ -418,9 +418,7 @@ inline auto exec(sqlite3* const db, A&& a, B&& ...args) noexcept(
   );
 }
 
-template <typename D, typename ...A,
-  typename = std::enable_if_t<is_db_v<D>>
->
+template <typename D, typename ...A, typename = std::enable_if_t<is_db_v<D>>>
 inline auto exec(D const& db, A&& ...args) noexcept(
   noexcept(exec(db.get(), std::forward<A>(args)...))
 )
@@ -556,16 +554,16 @@ namespace detail
 {
 
 template <typename>
-struct is_std_pair : std::false_type { };
+struct is_std_pair : std::false_type {};
 
 template <class T1, class T2>
-struct is_std_pair<std::pair<T1, T2> > : std::true_type { };
+struct is_std_pair<std::pair<T1, T2> > : std::true_type {};
 
 template <typename>
-struct is_std_tuple : std::false_type { };
+struct is_std_tuple : std::false_type {};
 
 template <class ...A>
-struct is_std_tuple<std::tuple<A...> > : std::true_type { };
+struct is_std_tuple<std::tuple<A...> > : std::true_type {};
 
 template <typename A, typename ...B>
 struct count_types :
@@ -626,8 +624,7 @@ struct count_types_n<0, S, A, B...> : std::integral_constant<std::size_t, S>
 };
 
 template <typename T, std::size_t ...I>
-T make_tuple(sqlite3_stmt* const s, int const i,
-  std::index_sequence<I...>)
+T make_tuple(sqlite3_stmt* const s, int const i, std::index_sequence<I...>)
 {
   return T{
     get<std::tuple_element_t<I, T>>(s,
@@ -652,7 +649,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept(
   noexcept(
     detail::make_tuple<T>(s,
       i,
-      std::make_index_sequence<std::size_t(std::tuple_size<T>{})>()
+      std::make_index_sequence<std::size_t(std::tuple_size_v<T>)>()
     )
   )
 )
