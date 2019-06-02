@@ -131,7 +131,7 @@ inline auto set(sqlite3_stmt* const s, charpair_t const& v) noexcept
 }
 
 template <int I, typename T,
-  typename = std::enable_if_t<std::is_same<T, char>{}>
+  typename = std::enable_if_t<std::is_same_v<T, char>>
 >
 inline auto set(sqlite3_stmt* const s, T const* const& v) noexcept
 {
@@ -213,8 +213,8 @@ template <typename T>
 using is_db_t =
   std::integral_constant<
     bool,
-    std::is_same<remove_cvr_t<T>, shared_db_t>{} ||
-    std::is_same<remove_cvr_t<T>, unique_db_t>{}
+    std::is_same_v<remove_cvr_t<T>, shared_db_t> ||
+    std::is_same_v<remove_cvr_t<T>, unique_db_t>
   >;
 
 template <typename T>
@@ -230,8 +230,8 @@ template <typename T>
 using is_stmt_t =
   std::integral_constant<
     bool,
-    std::is_same<remove_cvr_t<T>, shared_stmt_t>{} ||
-    std::is_same<remove_cvr_t<T>, unique_stmt_t>{}
+    std::is_same_v<remove_cvr_t<T>, shared_stmt_t> ||
+    std::is_same_v<remove_cvr_t<T>, unique_stmt_t>
   >;
 
 template <typename T>
@@ -514,7 +514,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<T, char const*>{},
+  std::is_same_v<T, char const*>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
@@ -524,7 +524,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<T, charpair_t>{},
+  std::is_same_v<T, charpair_t>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
@@ -537,7 +537,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<T, std::string>{},
+  std::is_same_v<T, std::string>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0)
@@ -550,7 +550,7 @@ get(sqlite3_stmt* const s, int const i = 0)
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<T, std::string_view>{},
+  std::is_same_v<T, std::string_view>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
@@ -563,7 +563,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<T, void const*>{},
+  std::is_same_v<T, void const*>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
@@ -573,7 +573,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same<T, blobpair_t>{},
+  std::is_same_v<T, blobpair_t>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
@@ -682,10 +682,10 @@ template <typename T>
 inline std::enable_if_t<
   (detail::is_std_pair<T>{} ||
   detail::is_std_tuple<T>{}) &&
-  !std::is_same<T, blobpair_t>{} &&
-  !std::is_same<T, charpair_t>{} &&
-  !std::is_same<T, charpair16_t>{} &&
-  !std::is_same<T, nullpair_t>{},
+  !std::is_same_v<T, blobpair_t> &&
+  !std::is_same_v<T, charpair_t> &&
+  !std::is_same_v<T, charpair16_t> &&
+  !std::is_same_v<T, nullpair_t>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept(
@@ -756,7 +756,7 @@ inline auto rexecget(S&& s, int const i = 0, A&& ...args) noexcept(
 
 template <typename T, typename D, typename A, typename ...B,
   typename = std::enable_if_t<
-    std::is_same<remove_cvr_t<D>, sqlite3*>{} ||
+    std::is_same_v<remove_cvr_t<D>, sqlite3*> ||
     is_db_v<D>
   >
 >
