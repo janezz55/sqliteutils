@@ -179,15 +179,17 @@ inline auto set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
   return sqlite3_bind_zeroblob64(s, I, v.second);
 }
 
-template <int I, std::size_t ...Is, typename ...A>
-auto set(sqlite3_stmt* const s, std::index_sequence<Is...> const,
-  A&& ...args) noexcept(noexcept((set<I + Is>(s, args), ...)))
+template <int I, std::size_t ...Is, typename A, typename ...B>
+auto set(sqlite3_stmt* const s, std::index_sequence<Is...>, A&& a, B&& ...b)
+  noexcept(
+    noexcept((set<I>(s, std::forward<A>(a)), (set<I + Is + 1>(s, b), ...)))
+  )
 {
-  int r(SQLITE_OK);
+  int r(set<I>(s, std::forward<A>(a)));
 
   return (
     (
-      SQLITE_OK == r ? r = set<I + Is>(s, args) : r
+      SQLITE_OK == r ? r = set<I + Is + 1>(s, std::forward<B>(b)) : r
     ),
     ...
   );
@@ -254,12 +256,18 @@ inline auto errmsg16(D const& db) noexcept
 }
 
 //set/////////////////////////////////////////////////////////////////////////
+template <int I = 1, typename A>
+inline auto set(sqlite3_stmt* const s, A&& a) noexcept
+{
+  return detail::set<I>(s, std::forward<A>(a));
+}
+
 template <int I = 1, typename ...A>
-inline auto set(sqlite3_stmt* const s, A&& ...args) noexcept
+inline auto set(sqlite3_stmt* const s, A&& ...a) noexcept
 {
   return detail::set<I>(s,
-    std::index_sequence_for<A...>(),
-    std::forward<A>(args)...
+    std::make_index_sequence<sizeof...(A) - 1>(),
+    std::forward<A>(a)...
   );
 }
 
