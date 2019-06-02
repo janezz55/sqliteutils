@@ -625,6 +625,15 @@ struct count_types_n<0, S, A, B...> : std::integral_constant<std::size_t, S>
 
 template <typename T, std::size_t ...I>
 T make_tuple(sqlite3_stmt* const s, int const i, std::index_sequence<I...>)
+  noexcept(
+    noexcept(
+      T{
+        std::tuple_element_t<I, T>(
+          std::declval<std::tuple_element_t<I, T> const&>()
+        )...
+      }
+    )
+  )
 {
   return T{
     get<std::tuple_element_t<I, T>>(s,
