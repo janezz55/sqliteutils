@@ -180,10 +180,15 @@ inline auto set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
 }
 
 template <int I, std::size_t ...Is, typename A, typename ...B>
-auto set(sqlite3_stmt* const s, std::index_sequence<Is...>, A&& a, B&& ...b)
+auto set(sqlite3_stmt* const s, std::index_sequence<Is...>, A&& a,
+  B&& ...b) noexcept(
   noexcept(
-    noexcept((set<I>(s, std::forward<A>(a)), (set<I + Is + 1>(s, b), ...)))
+    (
+      set<I>(s, std::forward<A>(a)),
+      (set<I + Is + 1>(s, std::forward<B>(b)), ...)
+    )
   )
+)
 {
   int r(set<I>(s, std::forward<A>(a)));
 
