@@ -264,7 +264,7 @@ inline auto errmsg16(D const& db) noexcept
 template <int I = 1, typename A>
 inline auto set(sqlite3_stmt* const s, A&& a) noexcept(
   noexcept(
-    detail::set<I>(nullptr, std::declval<A>())
+    detail::set<I>(s, std::declval<A>())
   )
 )
 {
@@ -274,7 +274,7 @@ inline auto set(sqlite3_stmt* const s, A&& a) noexcept(
 template <int I = 1, typename ...A>
 inline auto set(sqlite3_stmt* const s, A&& ...a) noexcept(
   noexcept(
-    detail::set<I>(nullptr,
+    detail::set<I>(s,
       std::make_index_sequence<sizeof...(A) - 1>(),
       std::declval<A>()...
     )
