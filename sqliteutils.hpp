@@ -159,8 +159,10 @@ inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
     SQLITE_STATIC, SQLITE_UTF16);
 }
 
-template <int I>
-inline auto set(sqlite3_stmt* const s, char16_t const* v) noexcept
+template <int I, typename T,
+  typename = std::enable_if_t<std::is_same_v<T, char16_t>>
+>
+inline auto set(sqlite3_stmt* const s, T const* const v) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v), -1,
     SQLITE_TRANSIENT, SQLITE_UTF16);
