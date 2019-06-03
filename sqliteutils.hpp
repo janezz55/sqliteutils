@@ -579,6 +579,19 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
+  std::is_same_v<T, charpair16_t>,
+  T
+>
+get(sqlite3_stmt* const s, int const i = 0) noexcept
+{
+  return {
+    get<char16_t const*>(s, i),
+    sqlite3_column_bytes16(s, i) / sizeof(char16_t)
+  };
+}
+
+template <typename T>
+inline std::enable_if_t<
   std::is_same_v<T, std::u16string>,
   T
 >
