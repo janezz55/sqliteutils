@@ -42,7 +42,7 @@ int main(int, char*[])
 
   squ::reset(stmt);
 
-  std::vector<std::tuple<std::string, unsigned, std::string, double> > v;
+  std::vector<std::tuple<std::string, unsigned, std::string, double>> v;
 
   squ::emplace_back(stmt, v);
 
