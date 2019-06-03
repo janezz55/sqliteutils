@@ -109,6 +109,7 @@ set(sqlite3_stmt* const s, T const v) noexcept
   return sqlite3_bind_int64(s, I, v);
 }
 
+//
 template <int I>
 inline auto set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
 {
