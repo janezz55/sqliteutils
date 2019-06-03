@@ -54,21 +54,21 @@ enum store
   TRANSIENT
 };
 
-template <enum store = TRANSIENT>
+template <enum store S = TRANSIENT>
 struct blobpair
 {
   void const* const first;
   sqlite3_uint64 const second;
 };
 
-template <enum store = TRANSIENT>
+template <enum store S = TRANSIENT>
 struct charpair
 {
   char const* const first;
   sqlite3_uint64 const second;
 };
 
-template <enum store = TRANSIENT>
+template <enum store S = TRANSIENT>
 struct char16pair
 {
   char16_t const* const first;
@@ -131,12 +131,19 @@ set(sqlite3_stmt* const s, T const v) noexcept
 }
 
 //
-template <int I, enum store S>
-inline auto set(sqlite3_stmt* const s, blobpair<S> const& v) noexcept
+template <int I>
+inline auto set(sqlite3_stmt* const s, blobpair<STATIC> const& v) noexcept
 {
   return v.first ?
-    sqlite3_bind_blob64(s, I, v.first, v.second,
-      STATIC == S ? SQLITE_STATIC : SQLITE_TRANSIENT) :
+    sqlite3_bind_blob64(s, I, v.first, v.second, SQLITE_STATIC) :
+    sqlite3_bind_zeroblob64(s, I, v.second);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const s, blobpair<TRANSIENT> const& v) noexcept
+{
+  return v.first ?
+    sqlite3_bind_blob64(s, I, v.first, v.second, SQLITE_TRANSIENT) :
     sqlite3_bind_zeroblob64(s, I, v.second);
 }
 
@@ -157,11 +164,18 @@ inline auto set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
   return sqlite3_bind_text64(s, I, v, N - 1, SQLITE_STATIC, SQLITE_UTF8);
 }
 
-template <int I, enum store S>
-inline auto set(sqlite3_stmt* const s, charpair<S> const& v) noexcept
+template <int I>
+inline auto set(sqlite3_stmt* const s, charpair<STATIC> const& v) noexcept
 {
-  return sqlite3_bind_text64(s, I, v.first, v.second,
-    STATIC == S ? SQLITE_STATIC : SQLITE_TRANSIENT, SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_STATIC,
+    SQLITE_UTF8);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const s, charpair<TRANSIENT> const& v) noexcept
+{
+  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT,
+    SQLITE_UTF8);
 }
 
 template <int I>
@@ -196,12 +210,19 @@ inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
     (N - 1) * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
 }
 
-template <int I, enum store S>
-inline auto set(sqlite3_stmt* const s, char16pair<S> const& v) noexcept
+template <int I>
+inline auto set(sqlite3_stmt* const s, char16pair<STATIC> const& v) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
-    v.second * sizeof(char16_t),
-    STATIC == S ? SQLITE_STATIC : SQLITE_TRANSIENT, SQLITE_UTF16);
+    v.second * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const s,
+  char16pair<TRANSIENT> const& v) noexcept
+{
+  return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
+    v.second * sizeof(char16_t), SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I>
