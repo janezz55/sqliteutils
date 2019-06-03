@@ -54,21 +54,21 @@ enum store
   TRANSIENT
 };
 
-template <enum store>
+template <enum store = TRANSIENT>
 struct blobpair
 {
   sqlite3_uint64 const second;
   void const* const first{};
 };
 
-template <enum store>
+template <enum store = TRANSIENT>
 struct charpair
 {
   sqlite3_uint64 const second;
   char const* const first{};
 };
 
-template <enum store>
+template <enum store = TRANSIENT>
 struct char16pair
 {
   sqlite3_uint64 const second;
@@ -702,13 +702,7 @@ T make_tuple(sqlite3_stmt* const s, int const i, std::index_sequence<I...>)
 template <typename T>
 inline std::enable_if_t<
   (detail::is_std_pair<T>{} ||
-  detail::is_std_tuple<T>{}) &&
-  !std::is_same_v<T, blobpair<STATIC>> &&
-  !std::is_same_v<T, blobpair<TRANSIENT>> &&
-  !std::is_same_v<T, charpair<STATIC>> &&
-  !std::is_same_v<T, charpair<TRANSIENT>> &&
-  !std::is_same_v<T, char16pair<STATIC>> &&
-  !std::is_same_v<T, char16pair<TRANSIENT>>,
+  detail::is_std_tuple<T>{}),
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept(
