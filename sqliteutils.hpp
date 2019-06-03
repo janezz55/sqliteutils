@@ -84,7 +84,7 @@ inline auto set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_floating_point<T>{},
-  decltype(sqlite3_bind_double(nullptr, I, std::declval<T>()))
+  decltype(sqlite3_bind_double({}, I, std::declval<T>()))
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
@@ -94,7 +94,7 @@ set(sqlite3_stmt* const s, T const v) noexcept
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
-  decltype(sqlite3_bind_int(nullptr, I, std::declval<T>()))
+  decltype(sqlite3_bind_int({}, I, std::declval<T>()))
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
@@ -104,7 +104,7 @@ set(sqlite3_stmt* const s, T const v) noexcept
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
-  decltype(sqlite3_bind_int64(nullptr, I, std::declval<T>()))
+  decltype(sqlite3_bind_int64({}, I, std::declval<T>()))
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
@@ -130,10 +130,12 @@ inline auto set(sqlite3_stmt* const s, charpair_t const& v) noexcept
     SQLITE_UTF8);
 }
 
-template <int I, typename T,
-  typename = std::enable_if_t<std::is_same_v<T, char>>
+template <int I, typename T >
+inline std::enable_if_t<
+  std::is_same_v<T, char>,
+  decltype(sqlite3_bind_text64({}, I, {}, -1, SQLITE_TRANSIENT, SQLITE_UTF8))
 >
-inline auto set(sqlite3_stmt* const s, T const* const& v) noexcept
+set(sqlite3_stmt* const s, T const* const& v) noexcept
 {
   return sqlite3_bind_text64(s, I, v, -1, SQLITE_TRANSIENT, SQLITE_UTF8);
 }
@@ -159,10 +161,12 @@ inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
     SQLITE_STATIC, SQLITE_UTF16);
 }
 
-template <int I, typename T,
-  typename = std::enable_if_t<std::is_same_v<T, char16_t>>
+template <int I, typename T>
+inline std::enable_if_t<
+  std::is_same_v<T, char16_t>,
+  decltype(sqlite3_bind_text64({}, I, {}, -1, SQLITE_TRANSIENT, SQLITE_UTF16))
 >
-inline auto set(sqlite3_stmt* const s, T const* const& v) noexcept
+set(sqlite3_stmt* const s, T const* const& v) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v), -1,
     SQLITE_TRANSIENT, SQLITE_UTF16);
@@ -410,7 +414,7 @@ inline auto rexec(sqlite3_stmt* const s, A&& ...args) noexcept
 
 // forwarders
 template <int I = 1, typename S, typename ...A>
-inline std::enable_if_t<is_stmt_v<S>, decltype(exec<I>(nullptr))>
+inline std::enable_if_t<is_stmt_v<S>, decltype(exec<I>({}))>
 exec(S const& s, A&& ...args) noexcept(
   noexcept(exec<I>(s.get(), std::forward<A>(args)...)))
 {
