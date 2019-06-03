@@ -587,7 +587,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
   return {
     get<void const*>(s, i),
-    sqlite3_column_bytes(s, i)
+    unsigned(sqlite3_column_bytes(s, i))
   };
 }
 
