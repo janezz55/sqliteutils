@@ -54,8 +54,6 @@ using charpair_t = std::pair<char const* const, sqlite3_uint64 const>;
 
 using charpair16_t = std::pair<char16_t const* const, sqlite3_uint64 const>;
 
-using nullpair_t = std::pair<std::nullptr_t const, sqlite3_uint64 const>;
-
 namespace detail
 {
 
@@ -76,9 +74,9 @@ struct sqlite3_stmt_deleter
 };
 
 template <int I>
-inline auto set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
+inline auto set(sqlite3_stmt* const s, std::nullptr_t) noexcept
 {
-  return sqlite3_bind_blob64(s, I, v.first, v.second, SQLITE_STATIC);
+  return sqlite3_bind_null(s, I);
 }
 
 template <int I, typename T>
@@ -112,9 +110,11 @@ set(sqlite3_stmt* const s, T const v) noexcept
 }
 
 template <int I>
-inline auto set(sqlite3_stmt* const s, std::nullptr_t) noexcept
+inline auto set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
 {
-  return sqlite3_bind_null(s, I);
+  return v.first ?
+    sqlite3_bind_blob64(s, I, v.first, v.second, SQLITE_TRANSIENT) :
+    sqlite3_bind_zeroblob64(s, I, v.second);
 }
 
 //
@@ -196,12 +196,6 @@ inline auto set(sqlite3_stmt* const s, std::u16string_view const& v) noexcept
 }
 
 //
-template <int I>
-inline auto set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
-{
-  return sqlite3_bind_zeroblob64(s, I, v.second);
-}
-
 template <int I, std::size_t ...Is, typename A, typename ...B>
 auto set(sqlite3_stmt* const s, std::index_sequence<Is...>, A&& a,
   B&& ...b) noexcept(
@@ -652,12 +646,6 @@ struct count_types<charpair16_t> :
 {
 };
 
-template <>
-struct count_types<nullpair_t> :
-  std::integral_constant<std::size_t, 1>
-{
-};
-
 template <typename A, typename B>
 struct count_types<std::pair<A, B>> :
   std::integral_constant<std::size_t, count_types<A>{} + count_types<B>{}>
@@ -708,8 +696,7 @@ inline std::enable_if_t<
   detail::is_std_tuple<T>{}) &&
   !std::is_same_v<T, blobpair_t> &&
   !std::is_same_v<T, charpair_t> &&
-  !std::is_same_v<T, charpair16_t> &&
-  !std::is_same_v<T, nullpair_t>,
+  !std::is_same_v<T, charpair16_t>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept(
