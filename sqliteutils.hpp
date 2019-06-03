@@ -57,22 +57,22 @@ enum store
 template <enum store = TRANSIENT>
 struct blobpair
 {
+  void const* const first;
   sqlite3_uint64 const second;
-  void const* const first{};
 };
 
 template <enum store = TRANSIENT>
 struct charpair
 {
+  char const* const first;
   sqlite3_uint64 const second;
-  char const* const first{};
 };
 
 template <enum store = TRANSIENT>
 struct char16pair
 {
+  char16_t const* const first;
   sqlite3_uint64 const second;
-  char16_t const* const first{};
 };
 
 namespace detail
