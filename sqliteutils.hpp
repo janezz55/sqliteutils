@@ -112,23 +112,9 @@ set(sqlite3_stmt* const s, T const v) noexcept
 }
 
 template <int I>
-inline auto set(sqlite3_stmt* const s, std::nullptr_t const) noexcept
+inline auto set(sqlite3_stmt* const s, std::nullptr_t) noexcept
 {
   return sqlite3_bind_null(s, I);
-}
-
-template <int I, std::size_t N>
-inline auto set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
-{
-  return sqlite3_bind_text64(s, I, v, v[N - 1] ? N : N - 1,
-    SQLITE_STATIC, SQLITE_UTF8);
-}
-
-template <int I>
-inline auto set(sqlite3_stmt* const s, charpair_t const& v) noexcept
-{
-  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT,
-    SQLITE_UTF8);
 }
 
 template <int I, typename T >
@@ -139,6 +125,20 @@ inline std::enable_if_t<
 set(sqlite3_stmt* const s, T const* const& v) noexcept
 {
   return sqlite3_bind_text64(s, I, v, -1, SQLITE_TRANSIENT, SQLITE_UTF8);
+}
+
+template <int I, std::size_t N>
+inline auto set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
+{
+  return sqlite3_bind_text64(s, I, v, v[N - 1] ? N : N - 1, SQLITE_STATIC,
+    SQLITE_UTF8);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const s, charpair_t const& v) noexcept
+{
+  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT,
+    SQLITE_UTF8);
 }
 
 template <int I>
@@ -155,11 +155,14 @@ inline auto set(sqlite3_stmt* const s, std::string_view const& v) noexcept
     SQLITE_UTF8);
 }
 
-template <int I>
-inline auto set(sqlite3_stmt* const s, charpair16_t const& v) noexcept
+template <int I, typename T>
+inline std::enable_if_t<
+  std::is_same_v<T, char16_t>,
+  decltype(sqlite3_bind_text64({}, I, {}, -1, SQLITE_TRANSIENT, SQLITE_UTF16))
+>
+set(sqlite3_stmt* const s, T const* const& v) noexcept
 {
-  return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
-    v.second * sizeof(char16_t), SQLITE_TRANSIENT, SQLITE_UTF16);
+  return sqlite3_bind_text64(s, I, v, -1, SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I, std::size_t N>
@@ -167,6 +170,13 @@ inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(&*v),
     (v[N - 1] ? N : N - 1) * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
+}
+
+template <int I>
+inline auto set(sqlite3_stmt* const s, charpair16_t const& v) noexcept
+{
+  return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
+    v.second * sizeof(char16_t), SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I>
