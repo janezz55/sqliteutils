@@ -48,11 +48,32 @@
 namespace squ
 {
 
-using blobpair_t = std::pair<void const* const, sqlite3_uint64 const>;
+enum store
+{
+  STATIC,
+  TRANSIENT
+};
 
-using charpair_t = std::pair<char const* const, sqlite3_uint64 const>;
+template <enum store>
+struct blobpair
+{
+  sqlite3_uint64 const second;
+  void const* const first{};
+};
 
-using charpair16_t = std::pair<char16_t const* const, sqlite3_uint64 const>;
+template <enum store>
+struct charpair
+{
+  sqlite3_uint64 const second;
+  char const* const first{};
+};
+
+template <enum store>
+struct char16pair
+{
+  sqlite3_uint64 const second;
+  char16_t const* const first{};
+};
 
 namespace detail
 {
@@ -110,11 +131,12 @@ set(sqlite3_stmt* const s, T const v) noexcept
 }
 
 //
-template <int I>
-inline auto set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
+template <int I, enum store S>
+inline auto set(sqlite3_stmt* const s, blobpair<S> const& v) noexcept
 {
   return v.first ?
-    sqlite3_bind_blob64(s, I, v.first, v.second, SQLITE_TRANSIENT) :
+    sqlite3_bind_blob64(s, I, v.first, v.second,
+      STATIC == S ? SQLITE_STATIC : SQLITE_TRANSIENT) :
     sqlite3_bind_zeroblob64(s, I, v.second);
 }
 
@@ -136,11 +158,11 @@ inline auto set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
     SQLITE_UTF8);
 }
 
-template <int I>
-inline auto set(sqlite3_stmt* const s, charpair_t const& v) noexcept
+template <int I, enum store S>
+inline auto set(sqlite3_stmt* const s, charpair<S> const& v) noexcept
 {
-  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT,
-    SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v.first, v.second,
+    STATIC == S ? SQLITE_STATIC : SQLITE_TRANSIENT, SQLITE_UTF8);
 }
 
 template <int I>
@@ -175,11 +197,12 @@ inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
     (v[N - 1] ? N : N - 1) * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
 }
 
-template <int I>
-inline auto set(sqlite3_stmt* const s, charpair16_t const& v) noexcept
+template <int I, enum store S>
+inline auto set(sqlite3_stmt* const s, char16pair<S> const& v) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
-    v.second * sizeof(char16_t), SQLITE_TRANSIENT, SQLITE_UTF16);
+    v.second * sizeof(char16_t),
+    STATIC == S ? SQLITE_STATIC : SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
 template <int I>
@@ -542,7 +565,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same_v<T, charpair_t> ||
+  std::is_same_v<T, charpair<STATIC>> ||
+  std::is_same_v<T, charpair<TRANSIENT>> ||
   std::is_same_v<T, std::string> ||
   std::is_same_v<T, std::string_view>,
   T
@@ -567,7 +591,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same_v<T, charpair16_t> ||
+  std::is_same_v<T, char16pair<STATIC>> ||
+  std::is_same_v<T, char16pair<TRANSIENT>> ||
   std::is_same_v<T, std::u16string> ||
   std::is_same_v<T, std::u16string_view>,
   T
@@ -592,7 +617,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same_v<T, blobpair_t>,
+  std::is_same_v<T, blobpair<STATIC>> ||
+  std::is_same_v<T, blobpair<TRANSIENT>>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
@@ -626,24 +652,6 @@ struct count_types :
 
 template <typename A>
 struct count_types<A> : std::integral_constant<std::size_t, 1>
-{
-};
-
-template <>
-struct count_types<blobpair_t> :
-  std::integral_constant<std::size_t, 1>
-{
-};
-
-template <>
-struct count_types<charpair_t> :
-  std::integral_constant<std::size_t, 1>
-{
-};
-
-template <>
-struct count_types<charpair16_t> :
-  std::integral_constant<std::size_t, 1>
 {
 };
 
@@ -695,9 +703,12 @@ template <typename T>
 inline std::enable_if_t<
   (detail::is_std_pair<T>{} ||
   detail::is_std_tuple<T>{}) &&
-  !std::is_same_v<T, blobpair_t> &&
-  !std::is_same_v<T, charpair_t> &&
-  !std::is_same_v<T, charpair16_t>,
+  !std::is_same_v<T, blobpair<STATIC>> &&
+  !std::is_same_v<T, blobpair<TRANSIENT>> &&
+  !std::is_same_v<T, charpair<STATIC>> &&
+  !std::is_same_v<T, charpair<TRANSIENT>> &&
+  !std::is_same_v<T, char16pair<STATIC>> &&
+  !std::is_same_v<T, char16pair<TRANSIENT>>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept(
