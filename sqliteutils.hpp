@@ -117,6 +117,7 @@ inline auto set(sqlite3_stmt* const s, std::nullptr_t) noexcept
   return sqlite3_bind_null(s, I);
 }
 
+//
 template <int I, typename T >
 inline std::enable_if_t<
   std::is_same_v<T, char>,
@@ -155,6 +156,7 @@ inline auto set(sqlite3_stmt* const s, std::string_view const& v) noexcept
     SQLITE_UTF8);
 }
 
+//
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_same_v<T, char16_t>,
@@ -193,17 +195,7 @@ inline auto set(sqlite3_stmt* const s, std::u16string_view const& v) noexcept
     v.size() * sizeof(char16_t), SQLITE_TRANSIENT, SQLITE_UTF16);
 }
 
-template <int I, typename T>
-inline std::enable_if_t<
-  std::is_same_v<T, char16_t>,
-  decltype(sqlite3_bind_text64({}, I, {}, -1, SQLITE_TRANSIENT, SQLITE_UTF16))
->
-set(sqlite3_stmt* const s, T const* const& v) noexcept
-{
-  return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v), -1,
-    SQLITE_TRANSIENT, SQLITE_UTF16);
-}
-
+//
 template <int I>
 inline auto set(sqlite3_stmt* const s, nullpair_t const& v) noexcept
 {
