@@ -694,14 +694,14 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept(
   noexcept(
     detail::make_tuple<T>(s,
       i,
-      std::make_index_sequence<std::size_t(std::tuple_size_v<T>)>()
+      std::make_index_sequence<std::tuple_size_v<T>>()
     )
   )
 )
 {
   return detail::make_tuple<T>(s,
     i,
-    std::make_index_sequence<std::tuple_size<T>{}>()
+    std::make_index_sequence<std::tuple_size_v<T>>()
   );
 }
 
