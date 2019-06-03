@@ -154,8 +154,7 @@ set(sqlite3_stmt* const s, T const* const& v) noexcept
 template <int I, std::size_t N>
 inline auto set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
 {
-  return sqlite3_bind_text64(s, I, v, v[N - 1] ? N : N - 1, SQLITE_STATIC,
-    SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v, N - 1, SQLITE_STATIC, SQLITE_UTF8);
 }
 
 template <int I, enum store S>
@@ -194,7 +193,7 @@ template <int I, std::size_t N>
 inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(&*v),
-    (v[N - 1] ? N : N - 1) * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
+    (N - 1) * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
 }
 
 template <int I, enum store S>
