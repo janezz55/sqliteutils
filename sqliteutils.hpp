@@ -586,7 +586,9 @@ get(sqlite3_stmt* const s, int const i = 0)
 {
   return {
     get<char16_t const*>(s, i),
-    std::u16string::size_type(sqlite3_column_bytes16(s, i))
+    std::u16string_view::size_type(
+      sqlite3_column_bytes16(s, i) / sizeof(char16_t)
+    )
   };
 }
 
@@ -599,7 +601,9 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
   return {
     get<char16_t const*>(s, i),
-    std::u16string_view::size_type(sqlite3_column_bytes16(s, i))
+    std::u16string_view::size_type(
+      sqlite3_column_bytes16(s, i) / sizeof(char16_t)
+    )
   };
 }
 
