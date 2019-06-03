@@ -84,7 +84,7 @@ inline auto set(sqlite3_stmt* const s, blobpair_t const& v) noexcept
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_floating_point<T>{},
-  int
+  decltype(sqlite3_bind_double(nullptr, I, std::declval<T>()))
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
@@ -94,7 +94,7 @@ set(sqlite3_stmt* const s, T const v) noexcept
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_integral<T>{} && (sizeof(T) <= sizeof(int)),
-  int
+  decltype(sqlite3_bind_int(nullptr, I, std::declval<T>()))
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
@@ -104,7 +104,7 @@ set(sqlite3_stmt* const s, T const v) noexcept
 template <int I, typename T>
 inline std::enable_if_t<
   std::is_integral<T>{} && (sizeof(T) > sizeof(int)),
-  int
+  decltype(sqlite3_bind_int64(nullptr, I, std::declval<T>()))
 >
 set(sqlite3_stmt* const s, T const v) noexcept
 {
