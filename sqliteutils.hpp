@@ -148,7 +148,7 @@ inline auto set(sqlite3_stmt* const s, blobpair<TRANSIENT> const& v) noexcept
 }
 
 //
-template <int I, typename T >
+template <int I, typename T>
 inline std::enable_if_t<
   std::is_same_v<T, char>,
   decltype(sqlite3_bind_text64({}, I, {}, -1, SQLITE_TRANSIENT, SQLITE_UTF8))
