@@ -594,7 +594,7 @@ inline std::enable_if_t<
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
   return {
-    reinterpret_cast<char const*>(sqlite3_column_text(s, i)),
+    get<char const*>(s, i),
     unsigned(sqlite3_column_bytes(s, i))
   };
 }
@@ -620,7 +620,7 @@ inline std::enable_if_t<
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
   return {
-    static_cast<char16_t const*>(sqlite3_column_text16(s, i)),
+    get<char16_t const*>(s, i),
     unsigned(sqlite3_column_bytes16(s, i) / sizeof(char16_t))
   };
 }
@@ -644,7 +644,7 @@ inline std::enable_if_t<
 get(sqlite3_stmt* const s, int const i = 0) noexcept
 {
   return {
-    sqlite3_column_blob(s, i),
+    get<void const*>(s, i),
     unsigned(sqlite3_column_bytes(s, i))
   };
 }
