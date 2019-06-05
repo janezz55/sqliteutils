@@ -48,6 +48,15 @@
 namespace squ
 {
 
+enum encoding
+{
+  UTF8 = SQLITE_UTF8,
+  UTF16LE = SQLITE_UTF16LE,
+  UTF16BE = SQLITE_UTF16BE,
+  UTF16 = SQLITE_UTF16,
+  UTF16_ALIGNED = SQLITE_UTF16_ALIGNED
+};
+
 enum store
 {
   STATIC,
@@ -61,14 +70,14 @@ struct blobpair
   sqlite3_uint64 const second;
 };
 
-template <enum store S = TRANSIENT>
+template <enum store = TRANSIENT, enum encoding = UTF8>
 struct charpair
 {
   char const* const first;
   sqlite3_uint64 const second;
 };
 
-template <enum store S = TRANSIENT>
+template <enum store = TRANSIENT, enum encoding = UTF16>
 struct char16pair
 {
   char16_t const* const first;
@@ -164,18 +173,17 @@ inline auto set(sqlite3_stmt* const s, char const (&v)[N]) noexcept
   return sqlite3_bind_text64(s, I, v, N - 1, SQLITE_STATIC, SQLITE_UTF8);
 }
 
-template <int I>
-inline auto set(sqlite3_stmt* const s, charpair<STATIC> const& v) noexcept
+template <int I, enum encoding E>
+inline auto set(sqlite3_stmt* const s, charpair<STATIC, E> const& v) noexcept
 {
-  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_STATIC,
-    SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_STATIC, E);
 }
 
-template <int I>
-inline auto set(sqlite3_stmt* const s, charpair<TRANSIENT> const& v) noexcept
+template <int I, enum encoding E>
+inline auto set(sqlite3_stmt* const s,
+  charpair<TRANSIENT, E> const& v) noexcept
 {
-  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT,
-    SQLITE_UTF8);
+  return sqlite3_bind_text64(s, I, v.first, v.second, SQLITE_TRANSIENT, E);
 }
 
 template <int I>
@@ -210,19 +218,20 @@ inline auto set(sqlite3_stmt* const s, char16_t const (&v)[N]) noexcept
     (N - 1) * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
 }
 
-template <int I>
-inline auto set(sqlite3_stmt* const s, char16pair<STATIC> const& v) noexcept
+template <int I, enum encoding E>
+inline auto set(sqlite3_stmt* const s,
+  char16pair<STATIC, E> const& v) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
-    v.second * sizeof(char16_t), SQLITE_STATIC, SQLITE_UTF16);
+    v.second * sizeof(char16_t), SQLITE_STATIC, E);
 }
 
-template <int I>
+template <int I, enum encoding E>
 inline auto set(sqlite3_stmt* const s,
   char16pair<TRANSIENT> const& v) noexcept
 {
   return sqlite3_bind_text64(s, I, reinterpret_cast<char const*>(v.first),
-    v.second * sizeof(char16_t), SQLITE_TRANSIENT, SQLITE_UTF16);
+    v.second * sizeof(char16_t), SQLITE_TRANSIENT, E);
 }
 
 template <int I>
@@ -297,6 +306,35 @@ using is_stmt_t =
 
 template <typename T>
 inline constexpr bool is_stmt_v{is_stmt_t<T>{}};
+
+namespace detail
+{
+
+template <typename>
+struct is_charpair : std::false_type {};
+
+template <enum store A, enum encoding B>
+struct is_charpair<charpair<A, B>> : std::true_type {};
+
+template <typename>
+struct is_char16pair : std::false_type {};
+
+template <enum store A, enum encoding B>
+struct is_char16pair<char16pair<A, B>> : std::true_type {};
+
+template <typename>
+struct is_std_pair : std::false_type {};
+
+template <class T1, class T2>
+struct is_std_pair<std::pair<T1, T2>> : std::true_type {};
+
+template <typename>
+struct is_std_tuple : std::false_type {};
+
+template <class ...A>
+struct is_std_tuple<std::tuple<A...>> : std::true_type {};
+
+}
 
 //errmsg//////////////////////////////////////////////////////////////////////
 inline auto errmsg(sqlite3* const db) noexcept
@@ -585,8 +623,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same_v<T, charpair<STATIC>> ||
-  std::is_same_v<T, charpair<TRANSIENT>> ||
+  detail::is_charpair<T>{} ||
+  detail::is_char16pair<T>{} ||
   std::is_same_v<T, std::string> ||
   std::is_same_v<T, std::string_view>,
   T
@@ -611,8 +649,8 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_same_v<T, char16pair<STATIC>> ||
-  std::is_same_v<T, char16pair<TRANSIENT>> ||
+  detail::is_charpair<T>{} ||
+  detail::is_char16pair<T>{} ||
   std::is_same_v<T, std::u16string> ||
   std::is_same_v<T, std::u16string_view>,
   T
@@ -651,18 +689,6 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 namespace detail
 {
-
-template <typename>
-struct is_std_pair : std::false_type {};
-
-template <class T1, class T2>
-struct is_std_pair<std::pair<T1, T2> > : std::true_type {};
-
-template <typename>
-struct is_std_tuple : std::false_type {};
-
-template <class ...A>
-struct is_std_tuple<std::tuple<A...> > : std::true_type {};
 
 template <typename A, typename ...B>
 struct count_types :
