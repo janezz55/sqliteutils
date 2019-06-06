@@ -432,7 +432,7 @@ template <std::size_t N>
 inline auto make_unique(sqlite3* const db, char const (&a)[N],
   unsigned const fl = 0) noexcept
 {
-  return make_unique(db, std::string_view(a, N), fl);
+  return make_unique(db, {a, N}, fl);
 }
 
 // forwarders
@@ -462,7 +462,7 @@ template <std::size_t N>
 inline auto make_shared(sqlite3* const db, char const (&a)[N],
   unsigned const fl = 0) noexcept
 {
-  return make_shared(db, std::string_view(a, N), fl);
+  return make_shared(db, {a, N}, fl);
 }
 
 // forwarders
