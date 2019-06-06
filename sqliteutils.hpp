@@ -591,7 +591,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_integral<T>{} &&
+  std::is_integral_v<T> &&
   (sizeof(T) > sizeof(std::int32_t)) &&
   (sizeof(T) <= sizeof(std::int64_t)),
   T
@@ -603,7 +603,7 @@ get(sqlite3_stmt* const s, int const i = 0) noexcept
 
 template <typename T>
 inline std::enable_if_t<
-  std::is_floating_point<T>{},
+  std::is_floating_point_v<T>,
   T
 >
 get(sqlite3_stmt* const s, int const i = 0) noexcept
