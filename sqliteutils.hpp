@@ -930,12 +930,12 @@ inline auto column_bytes(sqlite3_stmt* const s, int const i = 0) noexcept
   return sqlite3_column_bytes(s, i);
 }
 
-template <typename ...A>
-inline auto column_bytes(A&& ...args) noexcept(
-  noexcept(size(std::forward<A>(args)...))
+template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
+inline auto column_bytes(S const& s, int const i = 0) noexcept(
+  noexcept(column_bytes(s.get(), i))
 )
 {
-  return size(std::forward<A>(args)...);
+  return column_bytes(s.get(), i);
 }
 
 //column_count////////////////////////////////////////////////////////////////
