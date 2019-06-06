@@ -430,7 +430,7 @@ inline auto make_unique(sqlite3* const db, std::string_view const& sv,
 
 template <std::size_t N>
 inline auto make_unique(sqlite3* const db, char const (&a)[N],
-  unsigned const fl = 0) noexcept
+  unsigned const fl = 0) noexcept(noexcept(make_unique(db, {a, N}, fl)))
 {
   return make_unique(db, {a, N}, fl);
 }
@@ -460,7 +460,7 @@ inline auto make_shared(sqlite3* const db, std::string_view const& sv,
 
 template <std::size_t N>
 inline auto make_shared(sqlite3* const db, char const (&a)[N],
-  unsigned const fl = 0) noexcept
+  unsigned const fl = 0) noexcept(noexcept(make_shared(db, {a, N}, fl)))
 {
   return make_shared(db, {a, N}, fl);
 }
