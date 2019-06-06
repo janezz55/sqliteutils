@@ -924,6 +924,20 @@ inline auto clear_bindings(S const& s) noexcept(
   return clear_bindings(s.get());
 }
 
+//column_bytes////////////////////////////////////////////////////////////////
+inline auto column_bytes(sqlite3_stmt* const s, int const i = 0) noexcept
+{
+  return sqlite3_column_bytes(s, i);
+}
+
+template <typename ...A>
+inline auto column_bytes(A&& ...args) noexcept(
+  noexcept(size(std::forward<A>(args)...))
+)
+{
+  return size(std::forward<A>(args)...);
+}
+
 //column_count////////////////////////////////////////////////////////////////
 inline auto column_count(sqlite3_stmt* const s) noexcept
 {
@@ -1012,28 +1026,6 @@ template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
 inline auto reset(S const& s) noexcept(noexcept(reset(s.get())))
 {
   return reset(s.get());
-}
-
-//size////////////////////////////////////////////////////////////////////////
-inline auto size(sqlite3_stmt* const s, int const i = 0) noexcept
-{
-  return sqlite3_column_bytes(s, i);
-}
-
-template <typename S, typename = std::enable_if_t<is_stmt_v<S>>>
-inline auto size(S const& s, int const i = 0) noexcept(
-  noexcept(size(s.get(), i))
-)
-{
-  return size(s.get(), i);
-}
-
-template <typename ...A>
-inline auto column_bytes(A&& ...args) noexcept(
-  noexcept(size(std::forward<A>(args)...))
-)
-{
-  return size(std::forward<A>(args)...);
 }
 
 //for/////////////////////////////////////////////////////////////////////////
