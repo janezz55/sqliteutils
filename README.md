@@ -17,7 +17,7 @@ or
 ```c++
 squ::execget<std::string>(db, "SELECT ?", 0, "lol").value();
 ```
-Note, how we use `std::string` instead of `std::string_view`, as a prepared statement is created and then freed internally. The `0` designates which returned column you want. You could write more boiler-plate, if you wanted to use prepared statements. Most wrapped functions are named similarly to plain-vanilla sqlite functions, with the exception of utility function calls. These make use of various c++ standard-provided utility classes and functions to make your work easier. If you need something new, such as a utility function, or you are missing a wrapping of a certain unwrapped sqlite function, please create an issue.
+Note, how we use `std::string`, instead of `std::string_view`, as a prepared statement is created and then freed internally. The `0` designates which returned column you want. Had we used a prepared statement, we would have requested a `std::string_view`. Most wrapped functions are named similarly to plain-vanilla sqlite functions, with the exception of utility function calls. These make use of various c++ standard-provided utility classes and functions to make your work easier. If you need something new, such as a utility function, or you are missing a wrapping of a certain unwrapped sqlite function, please create an issue.
 ## Example
 ```c++
 #include <iostream>
