@@ -17,7 +17,7 @@ or
 ```c++
 squ::execget<std::string>(db, "SELECT ?", 0, "lol").value();
 ```
-Note how we use `std::string`, instead of `std::string_view`, as a prepared statement is created and then freed internally. The `0` designates which returned column we want. Had we used a prepared statement, we would have requested a `std::string_view`. It is possible to have multiple columns returned inside a `std::pair` or a `std::tuple`. Most wrapper functions have names similar to plain-vanilla sqlite functions, with the exception of provided utility functions. These make use of various c++ standard-provided classes and functions to make our work easier. If you need something new, such as a utility function, or you are missing a wrapping of a certain sqlite function, please create an issue.
+Note how we use `std::string`, instead of `std::string_view`, as a prepared statement is created and then freed internally. The `0` designates which returned column we want. Had we used a prepared statement, we would have requested a `std::string_view`. It is possible to retrieve multiple columns as a `std::tuple`. Most wrapper functions have names similar to plain-vanilla sqlite functions, with the exception of provided utility functions. These make use of various c++ standard-provided classes and functions to make our work easier. If you need something new, such as a utility function, or you are missing a wrapping of a certain sqlite function, please create an issue.
 ## Example
 ```c++
 #include <iostream>
