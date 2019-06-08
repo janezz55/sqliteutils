@@ -9,15 +9,15 @@ A lightweight C++17 wrapper library for sqlite3. The goals of the library are:
 
 Please create issues to request new features. Try it [online](http://htmlpreview.github.io/?https://github.com/user1095108/examples/blob/master/testsqu.html).
 ## Discussion
-The library is meant to relieve the need to a plethora of bookkeeping boiler-plate code, that often appears in .c files using the sqlite library. The smart pointers should delete statements and database connections, that you don't need anymore. In addition, the binding code should now be simplified. You can access the wrapper through string literals, as in:
+The library is meant to relieve the need for a plethora of bookkeeping boiler-plate code, that often appears in .c files using the sqlite library. The smart pointers should delete statements and database connections, that you don't need anymore. In addition, the binding code should now be simplified. You can access the wrapper through string literals, or through wrapped function calls as in:
 ```c++
 "SELECT 'lol'"_squ.execget<std::string>(db).value();
 ```
 or
 ```c++
-squ::execget<std::string>(db, "SELECT 'lol'");
+squ::execget<std::string>(db, "SELECT 'lol'").value();
 ```
-Note, how we use `std::string` instead of `std::string_view`, as a prepared statement is freed internally. You could also use more boiler-plate, if you want to use prepared statements. Most wrapped functions are named similarly to plain vanilla sqlite functions, with the exception of utility function calls. If you need something new, or you are missing a wrapping of a certain unwrapped function, please create an issue.
+Note, how we use `std::string` instead of `std::string_view`, as a prepared statement is created and then freed internally. You could also use more boiler-plate, if you want to use prepared statements. Most wrapped functions are named similarly to plain-vanilla sqlite functions, with the exception of utility function calls. These leverage various C++-standard provided utility classes and function to make your work easier. If you need something new, a utility function, or you are missing a wrapping of a certain unwrapped sqlite function, please create an issue.
 ## Example
 ```c++
 #include <iostream>
