@@ -15,7 +15,7 @@ The library is meant to relieve the need for a plethora of bookkeeping boiler-pl
 ```
 or
 ```c++
-squ::execget<std::string>(db, "SELECT 'lol'").value();
+squ::execget<std::string>(db, "SELECT ?", "lol").value();
 ```
 Note, how we use `std::string` instead of `std::string_view`, as a prepared statement is created and then freed internally. You could also use more boiler-plate, if you want to use prepared statements. Most wrapped functions are named similarly to plain-vanilla sqlite functions, with the exception of utility function calls. These make use of various c++ standard-provided utility classes and functions to make your work easier. If you need something new, such as a utility function, or you are missing a wrapping of a certain unwrapped sqlite function, please create an issue.
 ## Example
