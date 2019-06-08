@@ -8,6 +8,16 @@ A lightweight C++17 wrapper library for sqlite3. The goals of the library are:
 - performance.
 
 Please create issues to request new features. Try it [online](http://htmlpreview.github.io/?https://github.com/user1095108/examples/blob/master/testsqu.html).
+## Discussion
+The library is meant to relieve the need to a plethora of bookkeeping boiler-plate code, that often appears in .c files using the sqlite library. The smart pointers should delete statements and database connections, that you don't need anymore. In addition, the binding code should now be simplified. You can access the wrapper through string literals, as in:
+```c++
+"SELECT 'lol'"_squ.execget<std::string>(db).value();
+```
+or
+```c++
+squ::execget<std::string>(db, "SELECT 'lol'");
+```
+Note, how we use `std::string` instead of `std::string_view`, as a prepared statement is freed internally. You could also use more boiler-plate, if you want to use prepared statements. Most wrapped functions are named similarly to plain vanilla sqlite functions, with the exception of utility function calls. If you need something new, or you are missing a wrapping of a certain unwrapped function, please create an issue.
 ## Example
 ```c++
 #include <iostream>
