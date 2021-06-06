@@ -6,8 +6,6 @@ A lightweight C++17 wrapper library for sqlite3. The goals of the library are:
 - transparency,
 - type safety,
 - performance.
-
-Please create issues to request new features. Try it [online](http://htmlpreview.github.io/?https://github.com/user1095108/examples/blob/master/testsqu.html).
 ## Example
 ```c++
 #include <iostream>
@@ -93,13 +91,3 @@ int main(int, char*[])
   return 0;
 }
 ```
-## Discussion
-The library is meant to relieve the need for a plethora of bookkeeping boiler-plate code, that often appears in .c files using the sqlite library. You now can use smart pointers to free statements and database connections, that you don't need. In addition, the binding code should now be more simple. You can access the wrapper through string literals, or through wrapped function calls as in:
-```c++
-"SELECT 'lol'"_squ.execget<std::string>(db).value();
-```
-or
-```c++
-squ::execget<std::string>(db, "SELECT ?", 0, "lol").value();
-```
-Note how we use `std::string`, instead of `std::string_view`, as a prepared statement is created and then freed internally. The `0` designates which returned column we want. Had we used a prepared statement, we would have requested a `std::string_view`. It is possible to retrieve multiple columns as a `std::tuple`. Most wrapper functions have names similar to plain-vanilla sqlite functions, with the exception of provided utility functions. These make use of various c++ standard-provided classes and functions to make our work easier. If you need something new, such as a utility function, or you are missing a wrapping of a certain sqlite function, please create an issue.
